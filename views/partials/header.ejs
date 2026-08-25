@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> · GATA GADGETS</title>
+  <link rel="icon" type="image/jpeg" href="/img/logo.jpg">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<% if (currentUser) { %>
+  <header class="topbar">
+    <%
+      const nameParts = currentUser.name.trim().split(/\s+/);
+      const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : '')).toUpperCase();
+    %>
+    <div class="topbar-top">
+      <div class="brand"><span class="brand-mark"><img src="/img/logo.jpg" alt=""></span>GATA<span class="dot">•</span>GADGETS</div>
+      <div class="user-menu">
+        <button type="button" class="nav-toggle-btn" id="nav-toggle-btn" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="user-chip">
+          <span class="user-avatar"><%= initials %></span>
+          <span class="user-info">
+            <span class="user-name"><%= currentUser.name %></span>
+            <span class="badge-role"><%= currentUser.role %></span>
+          </span>
+        </div>
+        <form action="/logout" method="POST" style="margin:0;">
+          <button class="btn-logout" type="submit" title="Log out">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span class="btn-logout-label">Logout</span>
+          </button>
+        </form>
+      </div>
+    </div>
+    <nav class="nav-links" id="nav-links">
+      <% if (currentUser.role === 'admin') { %>
+        <a href="/">Dashboard</a>
+      <% } %>
+      <% if (currentUser.role === 'admin') { %>
+        <a href="/receipts">Receipts</a>
+      <% } else { %>
+        <a href="/receipts/new">New Receipt</a>
+      <% } %>
+      <a href="/returns">Returns</a>
+      <a href="/leave">Leave<% if (currentUser.role === 'admin' && pendingLeaveCount > 0) { %><span class="nav-badge"><%= pendingLeaveCount %></span><% } %></a>
+      <a href="/discounts">Discounts<% if (currentUser.role === 'admin' && pendingDiscountCount > 0) { %><span class="nav-badge"><%= pendingDiscountCount %></span><% } %></a>
+      <a href="/chat">Chat<% if (unreadChatCount > 0) { %><span class="nav-badge"><%= unreadChatCount %></span><% } %></a>
+      <a href="/announcements">Announcements<% if (unreadAnnouncementCount > 0) { %><span class="nav-badge"><%= unreadAnnouncementCount %></span><% } %></a>
+      <% if (currentUser.role === 'admin') { %>
+        <a href="/inventory">Inventory</a>
+        <a href="/expenses">Expenses</a>
+        <a href="/customers">Loyalty</a>
+        <a href="/courier">Courier Balance</a>
+        <a href="/ecocash">Ecocash Balance</a>
+        <a href="/reports/sales">Sales Report</a>
+        <a href="/reports/performance">Performance</a>
+        <a href="/reports/attendance">Attendance</a>
+        <a href="/reports/stock-valuation">Stock Valuation</a>
+        <a href="/reports/profit-loss">Profit &amp; Loss</a>
+        <a href="/users">Users</a>
+      <% } %>
+    </nav>
+  </header>
+  <script src="/js/nav-toggle.js"></script>
+<% } %>
+<div class="container">

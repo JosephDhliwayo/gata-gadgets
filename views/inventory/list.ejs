@@ -1,0 +1,65 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <div>
+    <h1>Inventory</h1>
+    <p class="subtitle">Manage products, pricing and stock levels.</p>
+  </div>
+  <a class="btn" href="/inventory/new">+ Add Product</a>
+</div>
+
+<div class="card">
+  <form method="GET" action="/inventory" class="form-row" style="margin-bottom:0;">
+    <div class="field" style="flex:2;">
+      <label for="q">Search</label>
+      <input type="text" id="q" name="q" value="<%= q %>" placeholder="Search by name, SKU or category">
+    </div>
+    <div class="field" style="flex:0; align-self:flex-end;">
+      <button class="btn secondary" type="submit">Search</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>SKU</th><th>Name</th><th>Category</th>
+        <th class="num">Cost</th><th class="num">Price</th><th class="num">On Hand</th><th class="num">Reorder At</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% products.forEach(p => { %>
+        <tr>
+          <td><%= p.sku %></td>
+          <td><%= p.name %></td>
+          <td><%= p.category %></td>
+          <td class="num">$<%= p.cost_price.toFixed(2) %></td>
+          <td class="num">$<%= p.selling_price.toFixed(2) %></td>
+          <td class="num">
+            <%= p.quantity %>
+            <% if (p.quantity <= p.reorder_level) { %><span class="pill pill-warning">Low</span><% } %>
+          </td>
+          <td class="num"><%= p.reorder_level %></td>
+          <td>
+            <div class="actions-row" style="margin-top:0;">
+              <a class="btn small outline" href="/inventory/<%= p.id %>/edit">Edit</a>
+              <form method="POST" action="/inventory/<%= p.id %>/restock" style="display:flex; gap:4px;">
+                <input type="number" name="quantity_change" placeholder="+/- qty" style="width:90px;" required>
+                <button class="btn small secondary" type="submit">Adjust</button>
+              </form>
+              <form method="POST" action="/inventory/<%= p.id %>/delete" onsubmit="return confirm('Remove this product from active inventory?');">
+                <button class="btn small danger" type="submit">Remove</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      <% }) %>
+      <% if (products.length === 0) { %>
+        <tr><td colspan="8" class="muted">No products found.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<%- include('../partials/footer') %>

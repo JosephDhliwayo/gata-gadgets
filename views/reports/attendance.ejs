@@ -1,0 +1,43 @@
+<%- include('../partials/header') %>
+<div class="page-header no-print">
+  <div>
+    <h1>Attendance</h1>
+    <p class="subtitle">When staff clocked in (logged in) and clocked out (logged out) each day.</p>
+  </div>
+  <button class="btn outline" onclick="window.print()">Print</button>
+</div>
+
+<div class="card no-print">
+  <form method="GET" action="/reports/attendance" class="form-row" style="margin-bottom:0;">
+    <div class="field"><label for="from">From</label><input type="date" id="from" name="from" value="<%= from %>"></div>
+    <div class="field"><label for="to">To</label><input type="date" id="to" name="to" value="<%= to %>"></div>
+    <div class="field" style="flex:0; align-self:flex-end;"><button class="btn secondary" type="submit">Run</button></div>
+  </form>
+</div>
+
+<p class="muted">Period: <%= formatDate(from) %> to <%= formatDate(to) %></p>
+
+<div class="card">
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Date</th><th>Staff</th><th>Clock In</th><th>Clock Out</th><th class="num">Hours</th></tr>
+    </thead>
+    <tbody>
+      <% entries.forEach(e => { %>
+        <tr>
+          <td><%= formatDate(e.day) %></td>
+          <td><%= e.user_name %></td>
+          <td><%= e.clock_in ? formatTime(e.clock_in) : '-' %></td>
+          <td><%= e.clock_out ? formatTime(e.clock_out) : (e.clock_in ? 'Still clocked in' : '-') %></td>
+          <td class="num"><%= e.hours !== null ? e.hours.toFixed(2) : '-' %></td>
+        </tr>
+      <% }) %>
+      <% if (entries.length === 0) { %>
+        <tr><td colspan="5" class="muted">No login activity in this period.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<%- include('../partials/footer') %>

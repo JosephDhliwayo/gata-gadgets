@@ -1,0 +1,26 @@
+<%- include('../partials/header') %>
+<div class="page-header"><h1><%= title %></h1></div>
+<div class="card" style="max-width:520px;">
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <form method="POST" action="/leave">
+    <div class="form-row">
+      <div class="field">
+        <label for="start_date">Start Date</label>
+        <input type="date" id="start_date" name="start_date" value="<%= formData ? formData.start_date || '' : '' %>" required>
+      </div>
+      <div class="field">
+        <label for="end_date">End Date</label>
+        <input type="date" id="end_date" name="end_date" value="<%= formData ? formData.end_date || '' : '' %>" required>
+      </div>
+    </div>
+    <div class="field">
+      <label for="reason">Reason (optional)</label>
+      <textarea id="reason" name="reason" rows="4" placeholder="e.g. Family commitment, medical appointment..."><%= formData ? formData.reason || '' : '' %></textarea>
+    </div>
+    <div class="actions-row">
+      <button class="btn" type="submit">Submit Request</button>
+      <a class="btn outline" href="/leave">Cancel</a>
+    </div>
+  </form>
+</div>
+<%- include('../partials/footer') %>

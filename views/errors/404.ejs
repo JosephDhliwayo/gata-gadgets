@@ -1,0 +1,13 @@
+<%- include('../partials/header') %>
+<div class="card" style="text-align:center; padding:60px 20px;">
+  <h1>404</h1>
+  <p class="muted">The page you are looking for could not be found.</p>
+  <% if (!currentUser) { %>
+    <a class="btn" href="/login">Back to Login</a>
+  <% } else if (currentUser.role === 'admin') { %>
+    <a class="btn" href="/">Back to Dashboard</a>
+  <% } else { %>
+    <a class="btn" href="/receipts/new">Back to New Receipt</a>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

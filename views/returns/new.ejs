@@ -1,0 +1,52 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <div>
+    <h1>Request Sales Return</h1>
+    <p class="subtitle">Receipt <%= receipt.receipt_number %> &middot; <%= formatDateTime(receipt.created_at) %></p>
+  </div>
+</div>
+
+<% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+<% if (items.length === 0) { %>
+  <div class="alert alert-warning">There is nothing left to return on this receipt — every item has already been returned or is part of a pending request.</div>
+  <a class="btn outline" href="/receipts/<%= receipt.id %>">Back to Receipt</a>
+<% } else { %>
+<form method="POST" action="/returns">
+  <input type="hidden" name="receipt_id" value="<%= receipt.id %>">
+  <div class="card">
+    <h3 class="mt-0">Items Eligible for Return</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Item</th><th class="num">Sold Qty</th><th class="num">Already Returned/Pending</th><th class="num">Still Returnable</th><th class="num">Return Qty</th></tr></thead>
+      <tbody>
+        <% items.forEach(it => { %>
+          <tr>
+            <td>
+              <%= it.product_name %>
+              <input type="hidden" name="receipt_item_id" value="<%= it.receipt_item_id %>">
+            </td>
+            <td class="num"><%= it.quantity %></td>
+            <td class="num"><%= it.quantity - it.remaining %></td>
+            <td class="num"><%= it.remaining %></td>
+            <td class="num">
+              <input type="number" name="return_quantity" min="0" max="<%= it.remaining %>" value="0" style="width:90px;">
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    </div>
+    <div class="field" style="margin-top:16px;">
+      <label for="reason">Reason for Return</label>
+      <textarea id="reason" name="reason" rows="3" placeholder="e.g. Customer changed their mind, defective item, wrong item sold..."></textarea>
+    </div>
+    <div class="actions-row">
+      <button class="btn" type="submit">Submit Return Request</button>
+      <a class="btn outline" href="/receipts/<%= receipt.id %>">Cancel</a>
+    </div>
+    <p class="muted" style="margin-top:12px;">This request will be sent to an administrator for approval. Stock is only adjusted once approved.</p>
+  </div>
+</form>
+<% } %>
+<%- include('../partials/footer') %>

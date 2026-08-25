@@ -1,0 +1,126 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <div>
+    <h1>Users Dashboard</h1>
+    <p class="subtitle">Team overview and account management. Only administrators can manage inventory and reports.</p>
+  </div>
+  <a class="btn" href="/users/new">+ Add User</a>
+</div>
+
+<% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+<% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+
+<div class="grid grid-4">
+  <div class="stat">
+    <div class="label">Total Users</div>
+    <div class="value"><%= stats.total %></div>
+  </div>
+  <div class="stat">
+    <div class="label">Active / Disabled</div>
+    <div class="value success"><%= stats.active %></div>
+    <div class="muted" style="font-size:0.8rem; margin-top:2px;"><%= stats.disabled %> disabled</div>
+  </div>
+  <div class="stat">
+    <div class="label">Admins / Cashiers</div>
+    <div class="value accent"><%= stats.admins %></div>
+    <div class="muted" style="font-size:0.8rem; margin-top:2px;"><%= stats.cashiers %> cashiers</div>
+  </div>
+  <div class="stat">
+    <div class="label">Captured Sales Today</div>
+    <div class="value"><%= activeToday %></div>
+    <div class="muted" style="font-size:0.8rem; margin-top:2px;">user(s) with a sale today</div>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h3 class="mt-0">Top Performers (All Time)</h3>
+    <% if (topPerformers.length === 0) { %>
+      <p class="muted">No receipts captured yet.</p>
+    <% } else { %>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>User</th><th class="num">Receipts</th><th class="num">Total Sales</th></tr></thead>
+        <tbody>
+          <% topPerformers.forEach(u => { %>
+            <tr>
+              <td><%= u.name %></td>
+              <td class="num"><%= u.receipt_count %></td>
+              <td class="num">$<%= u.total_sales.toFixed(2) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      </div>
+    <% } %>
+  </div>
+  <div class="card">
+    <h3 class="mt-0">Quick Actions</h3>
+    <p class="muted">Add a new staff account, or manage existing accounts in the table below.</p>
+    <a class="btn" href="/users/new">+ Add User</a>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="mt-0">All Users</h3>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th><th>Email</th><th>Clock-in ID</th><th>Role</th><th>Status</th>
+        <th class="num">Receipts</th><th class="num">Total Sales</th><th>Last Sale</th>
+        <th>Commission %</th>
+        <th>Reset Password</th><th></th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% users.forEach(u => { %>
+        <tr>
+          <td><%= u.name %></td>
+          <td><%= u.email %></td>
+          <td>
+            <form method="POST" action="/users/<%= u.id %>/clock-in-id" style="display:flex; gap:4px;">
+              <input type="text" name="clock_in_id" value="<%= u.clock_in_id %>" style="width:90px;" required>
+              <button class="btn small secondary" type="submit">Set</button>
+            </form>
+          </td>
+          <td><span class="pill pill-muted"><%= u.role %></span></td>
+          <td><span class="pill <%= u.active ? 'pill-success' : 'pill-danger' %>"><%= u.active ? 'active' : 'disabled' %></span></td>
+          <td class="num"><%= u.receipt_count %></td>
+          <td class="num">$<%= u.total_sales.toFixed(2) %></td>
+          <td><%= u.last_sale_at ? formatDateTime(u.last_sale_at) : '-' %></td>
+          <td>
+            <form method="POST" action="/users/<%= u.id %>/commission" style="display:flex; gap:4px;">
+              <input type="number" name="commission_rate" value="<%= u.commission_rate %>" step="0.1" min="0" max="100" style="width:80px;">
+              <button class="btn small secondary" type="submit">Set</button>
+            </form>
+          </td>
+          <td>
+            <form method="POST" action="/users/<%= u.id %>/reset-password" style="display:flex; gap:4px;">
+              <input type="password" name="password" placeholder="New password" style="width:140px;" minlength="6">
+              <button class="btn small secondary" type="submit">Reset</button>
+            </form>
+          </td>
+          <td>
+            <% if (u.id !== currentUser.id) { %>
+              <form method="POST" action="/users/<%= u.id %>/toggle-active">
+                <button class="btn small <%= u.active ? 'danger' : 'outline' %>" type="submit"><%= u.active ? 'Disable' : 'Enable' %></button>
+              </form>
+            <% } else { %>
+              <span class="muted">You</span>
+            <% } %>
+          </td>
+          <td>
+            <% if (u.id !== currentUser.id) { %>
+              <form method="POST" action="/users/<%= u.id %>/delete" onsubmit="return confirm('Permanently delete this user? This cannot be undone. Only allowed if they have no sales/activity on record — otherwise disable them instead.');">
+                <button class="btn small danger" type="submit">Delete</button>
+              </form>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<%- include('../partials/footer') %>

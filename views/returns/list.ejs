@@ -1,0 +1,49 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <div>
+    <h1>Sales Returns</h1>
+    <p class="subtitle"><%= isAdmin ? 'All return requests awaiting or previously reviewed.' : 'Return requests you have submitted.' %></p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="actions-row" style="margin-top:0;">
+    <a class="btn small <%= status === '' ? 'secondary' : 'outline' %>" href="/returns">All</a>
+    <a class="btn small <%= status === 'pending' ? 'secondary' : 'outline' %>" href="/returns?status=pending">Pending</a>
+    <a class="btn small <%= status === 'approved' ? 'secondary' : 'outline' %>" href="/returns?status=approved">Approved</a>
+    <a class="btn small <%= status === 'rejected' ? 'secondary' : 'outline' %>" href="/returns?status=rejected">Rejected</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Request #</th><th>Receipt #</th><% if (isAdmin) { %><th>Requested By</th><% } %>
+        <th class="num">Return Value</th><th>Status</th><th>Submitted</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% requests.forEach(r => { %>
+        <tr>
+          <td><a href="/returns/<%= r.id %>">#<%= r.id %></a></td>
+          <td><%= r.receipt_number %></td>
+          <% if (isAdmin) { %><td><%= r.requested_by_name %></td><% } %>
+          <td class="num">$<%= r.return_value.toFixed(2) %></td>
+          <td>
+            <span class="pill <%= r.status === 'approved' ? 'pill-success' : (r.status === 'rejected' ? 'pill-danger' : 'pill-warning') %>">
+              <%= r.status %>
+            </span>
+          </td>
+          <td><%= formatDateTime(r.created_at) %></td>
+        </tr>
+      <% }) %>
+      <% if (requests.length === 0) { %>
+        <tr><td colspan="6" class="muted">No return requests found.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<%- include('../partials/footer') %>

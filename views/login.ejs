@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> · GATA GADGETS</title>
+  <link rel="icon" type="image/jpeg" href="/img/logo.jpg">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="brand-logo"><img src="/img/logo.jpg" alt="GATA GADGETS"></div>
+      <div class="brand-big">GATA<span class="dot">•</span>GADGETS</div>
+      <p class="brand-tagline">We have it all for you.</p>
+
+      <div class="login-tabs">
+        <button type="button" class="login-tab active" id="tab-staff-btn">Staff Clock-in</button>
+        <button type="button" class="login-tab" id="tab-admin-btn">Admin Login</button>
+      </div>
+
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+
+      <form action="/login" method="POST" id="staff-form">
+        <input type="hidden" name="mode" value="staff">
+        <div class="field">
+          <label for="clock_in_id">Clock-in ID</label>
+          <input type="text" id="clock_in_id" name="clock_in_id" required autofocus autocomplete="username">
+        </div>
+        <button class="btn" type="submit" style="width:100%;">Clock In</button>
+      </form>
+
+      <form action="/login" method="POST" id="admin-form" style="display:none;">
+        <input type="hidden" name="mode" value="admin">
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" autocomplete="username">
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" autocomplete="current-password">
+        </div>
+        <button class="btn" type="submit" style="width:100%;">Sign In</button>
+      </form>
+
+      <p class="hint" id="staff-hint">Enter the Clock-in ID assigned to you by your administrator.</p>
+      <p class="hint" id="admin-hint" style="display:none;">Default admin: admin@gatagadgets.com / Admin@123<br>Change this password after first login.</p>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const staffBtn = document.getElementById('tab-staff-btn');
+      const adminBtn = document.getElementById('tab-admin-btn');
+      const staffForm = document.getElementById('staff-form');
+      const adminForm = document.getElementById('admin-form');
+      const staffHint = document.getElementById('staff-hint');
+      const adminHint = document.getElementById('admin-hint');
+      const clockInInput = document.getElementById('clock_in_id');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+
+      function showStaff() {
+        staffBtn.classList.add('active');
+        adminBtn.classList.remove('active');
+        staffForm.style.display = '';
+        adminForm.style.display = 'none';
+        staffHint.style.display = '';
+        adminHint.style.display = 'none';
+        clockInInput.required = true;
+        emailInput.required = false;
+        passwordInput.required = false;
+        clockInInput.focus();
+      }
+
+      function showAdmin() {
+        adminBtn.classList.add('active');
+        staffBtn.classList.remove('active');
+        adminForm.style.display = '';
+        staffForm.style.display = 'none';
+        adminHint.style.display = '';
+        staffHint.style.display = 'none';
+        clockInInput.required = false;
+        emailInput.required = true;
+        passwordInput.required = true;
+        emailInput.focus();
+      }
+
+      staffBtn.addEventListener('click', showStaff);
+      adminBtn.addEventListener('click', showAdmin);
+      <% if (typeof lastMode !== 'undefined' && lastMode === 'admin') { %>showAdmin();<% } %>
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <div>
+    <h1>Return Request #<%= request.id %></h1>
+    <p class="subtitle">For receipt <a href="/receipts/<%= request.receipt_id %>"><%= request.receipt_number %></a></p>
+  </div>
+  <span class="pill <%= request.status === 'approved' ? 'pill-success' : (request.status === 'rejected' ? 'pill-danger' : 'pill-warning') %>" style="font-size:0.85rem;">
+    <%= request.status %>
+  </span>
+</div>
+
+<div class="card">
+  <div class="grid grid-3">
+    <div><strong>Requested By</strong><br><%= request.requested_by_name %></div>
+    <div><strong>Submitted</strong><br><%= formatDateTime(request.created_at) %></div>
+    <div><strong>Customer</strong><br><%= request.customer_name || 'Walk-in' %></div>
+  </div>
+  <% if (request.reason) { %>
+    <p style="margin-top:16px;"><strong>Reason:</strong> <%= request.reason %></p>
+  <% } %>
+</div>
+
+<div class="card">
+  <h3 class="mt-0">Items Requested for Return</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Unit Price</th><th class="num">Value</th></tr></thead>
+    <tbody>
+      <% let total = 0; %>
+      <% items.forEach(it => { %>
+        <% total += it.quantity * it.unit_price; %>
+        <tr>
+          <td><%= it.product_name %></td>
+          <td class="num"><%= it.quantity %></td>
+          <td class="num">$<%= it.unit_price.toFixed(2) %></td>
+          <td class="num">$<%= (it.quantity * it.unit_price).toFixed(2) %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+    <tfoot>
+      <tr style="font-weight:700;"><td colspan="3" class="num">Total Return Value</td><td class="num">$<%= total.toFixed(2) %></td></tr>
+    </tfoot>
+  </table>
+  </div>
+</div>
+
+<% if (request.status === 'pending' && currentUser.role === 'admin') { %>
+  <div class="card">
+    <h3 class="mt-0">Review This Request</h3>
+    <form method="POST" action="/returns/<%= request.id %>/approve" onsubmit="return confirm('Approve this return? Items will be restocked immediately.');" style="margin-bottom:12px;">
+      <div class="field">
+        <label for="review_note_approve">Note (optional)</label>
+        <input type="text" id="review_note_approve" name="review_note" placeholder="Approval note">
+      </div>
+      <button class="btn" type="submit">Approve Return</button>
+    </form>
+    <form method="POST" action="/returns/<%= request.id %>/reject" onsubmit="return confirm('Reject this return request?');">
+      <div class="field">
+        <label for="review_note_reject">Note (optional)</label>
+        <input type="text" id="review_note_reject" name="review_note" placeholder="Reason for rejection">
+      </div>
+      <button class="btn danger" type="submit">Reject Return</button>
+    </form>
+  </div>
+<% } %>
+
+<% if (request.status !== 'pending') { %>
+  <div class="card">
+    <h3 class="mt-0">Review Outcome</h3>
+    <p>
+      <strong>Reviewed By:</strong> <%= request.reviewed_by_name %><br>
+      <strong>Reviewed At:</strong> <%= formatDateTime(request.reviewed_at) %><br>
+      <% if (request.review_note) { %><strong>Note:</strong> <%= request.review_note %><% } %>
+    </p>
+    <% if (request.status === 'approved') { %>
+      <div class="alert alert-success">This return was approved. Items have been added back to inventory.</div>
+    <% } else { %>
+      <div class="alert alert-error">This return request was rejected.</div>
+    <% } %>
+  </div>
+<% } %>
+
+<div class="actions-row no-print">
+  <a class="btn outline" href="/returns">Back to Returns</a>
+</div>
+<%- include('../partials/footer') %>

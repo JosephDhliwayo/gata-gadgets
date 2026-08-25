@@ -1,0 +1,49 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <div>
+    <h1>Receipts</h1>
+    <p class="subtitle"><%= isAdmin ? 'All receipts across the business.' : 'Receipts you have captured.' %></p>
+  </div>
+  <a class="btn" href="/receipts/new">+ New Receipt</a>
+</div>
+
+<div class="card">
+  <form method="GET" action="/receipts" class="form-row" style="margin-bottom:0;">
+    <div class="field"><label for="from">From</label><input type="date" id="from" name="from" value="<%= from %>"></div>
+    <div class="field"><label for="to">To</label><input type="date" id="to" name="to" value="<%= to %>"></div>
+    <div class="field" style="flex:0; align-self:flex-end;"><button class="btn secondary" type="submit">Filter</button></div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Receipt #</th><th>Date</th><% if (isAdmin) { %><th>Cashier</th><% } %><th>Customer</th><th>Payment</th><th class="num">Total</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <% receipts.forEach(r => { %>
+        <tr>
+          <td><a href="/receipts/<%= r.id %>"><%= r.receipt_number %></a></td>
+          <td><%= formatDateTime(r.created_at) %></td>
+          <% if (isAdmin) { %><td><%= r.cashier_name %></td><% } %>
+          <td><%= r.customer_name || '-' %></td>
+          <td>
+            <% if (r.payment_method === 'courier') { %>
+              <span class="pill pill-warning">Courier</span>
+            <% } else { %>
+              <%= r.payment_method %>
+            <% } %>
+          </td>
+          <td class="num">$<%= r.total.toFixed(2) %></td>
+          <td><span class="pill <%= r.status === 'void' ? 'pill-danger' : 'pill-success' %>"><%= r.status %></span></td>
+        </tr>
+      <% }) %>
+      <% if (receipts.length === 0) { %>
+        <tr><td colspan="7" class="muted">No receipts found for this period.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,135 @@
+<%- include('partials/header') %>
+<div class="page-header">
+  <div>
+    <h1>Welcome, <%= currentUser.name %></h1>
+    <p class="subtitle">Here's what's happening at GATA GADGETS today.</p>
+  </div>
+  <a class="btn" href="/receipts/new">+ New Receipt</a>
+</div>
+
+<% if (latestAnnouncements.length > 0) { %>
+  <div class="card announcement-card">
+    <div class="page-header" style="margin-bottom:8px;">
+      <h3 class="mt-0" style="margin-bottom:0;">📣 <%= latestAnnouncements[0].title %></h3>
+      <a href="/announcements">All announcements &rarr;</a>
+    </div>
+    <p class="muted" style="margin:0 0 6px;"><%= latestAnnouncements[0].posted_by_name %> &middot; <%= formatDateTime(latestAnnouncements[0].created_at) %></p>
+    <p style="white-space:pre-wrap; margin:0;"><%= latestAnnouncements[0].body %></p>
+  </div>
+<% } %>
+
+<div class="grid grid-4">
+  <div class="stat">
+    <div class="label">Receipts Today</div>
+    <div class="value accent"><%= receiptsToday %></div>
+  </div>
+  <div class="stat">
+    <div class="label">Today's Sales</div>
+    <div class="value accent">$<%= todaySales.toFixed(2) %></div>
+  </div>
+  <div class="stat">
+    <div class="label">Today's Profit</div>
+    <div class="value <%= todayProfit >= 0 ? 'success' : 'danger' %>">$<%= todayProfit.toFixed(2) %></div>
+  </div>
+  <div class="stat">
+    <div class="label">Weekly Sales</div>
+    <div class="value accent">$<%= weeklySales.toFixed(2) %></div>
+  </div>
+  <div class="stat">
+    <div class="label">Weekly Profit</div>
+    <div class="value <%= weeklyProfit >= 0 ? 'success' : 'danger' %>">$<%= weeklyProfit.toFixed(2) %></div>
+  </div>
+  <div class="stat">
+    <div class="label">Monthly Sales</div>
+    <div class="value accent">$<%= monthlySales.toFixed(2) %></div>
+  </div>
+  <div class="stat">
+    <div class="label">Monthly Profit</div>
+    <div class="value <%= monthlyProfit >= 0 ? 'success' : 'danger' %>">$<%= monthlyProfit.toFixed(2) %></div>
+  </div>
+  <div class="stat">
+    <div class="label">Stock Value (Cost)</div>
+    <div class="value">$<%= stockValue.toFixed(2) %></div>
+  </div>
+  <div class="stat">
+    <div class="label">Low Stock Items</div>
+    <div class="value <%= lowStock.length > 0 ? 'danger' : 'success' %>"><%= lowStock.length %></div>
+  </div>
+  <div class="stat">
+    <div class="label">Pending Return Requests</div>
+    <div class="value <%= pendingReturns > 0 ? 'danger' : 'success' %>"><%= pendingReturns %></div>
+  </div>
+  <div class="stat">
+    <div class="label">Courier Balance to Collect</div>
+    <div class="value <%= courierBalance > 0 ? 'danger' : 'success' %>">$<%= courierBalance.toFixed(2) %></div>
+  </div>
+  <div class="stat">
+    <div class="label">Ecocash Balance to Collect</div>
+    <div class="value accent">$<%= ecocashBalance.toFixed(2) %></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="page-header" style="margin-bottom:8px;">
+    <h3 class="mt-0" style="margin-bottom:0;">Profit &amp; Loss Trend</h3>
+    <div class="pl-tabs">
+      <button type="button" class="pl-tab active" data-granularity="daily">Daily</button>
+      <button type="button" class="pl-tab" data-granularity="weekly">Weekly</button>
+      <button type="button" class="pl-tab" data-granularity="monthly">Monthly</button>
+    </div>
+  </div>
+  <div class="pl-legend">
+    <span class="pl-legend-item"><span class="pl-swatch" style="background:#7c3aed;"></span>Sales</span>
+    <span class="pl-legend-item"><span class="pl-swatch" style="background:#16a34a;"></span>Profit</span>
+  </div>
+  <div class="pl-chart-scroll">
+    <div id="pl-chart"></div>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h3 class="mt-0">Low Stock Alerts</h3>
+    <% if (lowStock.length === 0) { %>
+      <p class="muted">All products are sufficiently stocked.</p>
+    <% } else { %>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Product</th><th class="num">On Hand</th><th class="num">Reorder Level</th></tr></thead>
+        <tbody>
+          <% lowStock.forEach(p => { %>
+            <tr>
+              <td><%= p.name %></td>
+              <td class="num"><%= p.quantity %></td>
+              <td class="num"><%= p.reorder_level %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      </div>
+    <% } %>
+    <div class="actions-row">
+      <a href="/inventory">Manage inventory &rarr;</a>
+      <a href="/returns?status=pending">Review returns &rarr;</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="mt-0">Team &amp; Communication</h3>
+    <p class="muted">Chat with staff or post an update everyone will see on login.</p>
+    <div class="actions-row">
+      <a class="btn outline" href="/chat">Open Chat</a>
+      <a class="btn outline" href="/announcements/new">Post Announcement</a>
+    </div>
+    <h3>Login Alerts</h3>
+    <p class="muted">Get a browser notification whenever any staff member logs in or out.</p>
+    <button class="btn outline" id="enable-push-btn" data-vapid-key="<%= vapidPublicKey %>" data-subscribed="<%= pushSubscribed %>">
+      <%= pushSubscribed ? 'Login alerts enabled' : 'Enable Login Alerts' %>
+    </button>
+  </div>
+</div>
+
+<script src="/js/push-notifications.js"></script>
+<script>window.PL_SERIES = <%- JSON.stringify(plSeries) %>;</script>
+<script src="/js/pl-chart.js"></script>
+<%- include('partials/footer') %>

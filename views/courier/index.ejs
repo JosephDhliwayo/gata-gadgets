@@ -1,0 +1,91 @@
+<%- include('../partials/header') %>
+<div class="page-header no-print">
+  <div>
+    <h1>Courier Balance</h1>
+    <p class="subtitle">Money owed from courier (credit) sales — goods delivered now, payment collected later.</p>
+  </div>
+  <button class="btn outline" onclick="window.print()">Print</button>
+</div>
+
+<% if (error) { %><div class="alert alert-error no-print"><%= error %></div><% } %>
+<% if (success) { %><div class="alert alert-success no-print"><%= success %></div><% } %>
+
+<div class="grid grid-3">
+  <div class="stat">
+    <div class="label">Total Sold via Courier</div>
+    <div class="value">$<%= balance.sold.toFixed(2) %></div>
+  </div>
+  <div class="stat">
+    <div class="label">Total Collected</div>
+    <div class="value">$<%= balance.collected.toFixed(2) %></div>
+  </div>
+  <div class="stat">
+    <div class="label">Balance to Collect</div>
+    <div class="value <%= balance.balance > 0 ? 'accent' : 'success' %>">$<%= balance.balance.toFixed(2) %></div>
+  </div>
+</div>
+
+<div class="card no-print">
+  <h3 class="mt-0">Record a Collection</h3>
+  <p class="muted" style="margin-top:-8px;">Record payment actually collected from courier sales. This is deducted from the balance above.</p>
+  <form method="POST" action="/courier" class="form-row">
+    <div class="field">
+      <label for="amount">Amount Collected ($)</label>
+      <input type="number" id="amount" name="amount" step="0.01" min="0.01" max="<%= balance.balance %>" required>
+    </div>
+    <div class="field" style="flex:2;">
+      <label for="note">Note (optional)</label>
+      <input type="text" id="note" name="note" placeholder="e.g. Cash from courier driver, EFT from customer">
+    </div>
+    <div class="field" style="flex:0; align-self:flex-end;">
+      <button class="btn" type="submit">Record Collection</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h3 class="mt-0">Collection History</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Date</th><th>Amount</th><th>Note</th><th>Recorded By</th></tr></thead>
+    <tbody>
+      <% collections.forEach(c => { %>
+        <tr>
+          <td><%= formatDateTime(c.created_at) %></td>
+          <td class="num">$<%= c.amount.toFixed(2) %></td>
+          <td><%= c.note || '-' %></td>
+          <td><%= c.collected_by_name %></td>
+        </tr>
+      <% }) %>
+      <% if (collections.length === 0) { %>
+        <tr><td colspan="4" class="muted">No collections recorded yet.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="mt-0">Recent Courier Sales</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Receipt #</th><th>Date</th><th>Customer</th><th>Destination</th><th>Cashier</th><th class="num">Amount</th></tr></thead>
+    <tbody>
+      <% receipts.forEach(r => { %>
+        <tr>
+          <td><a href="/receipts/<%= r.id %>"><%= r.receipt_number %></a></td>
+          <td><%= formatDateTime(r.created_at) %></td>
+          <td><%= r.customer_name || 'Walk-in' %></td>
+          <td><%= r.courier_destination || '-' %></td>
+          <td><%= r.cashier_name %></td>
+          <td class="num">$<%= r.total.toFixed(2) %></td>
+        </tr>
+      <% }) %>
+      <% if (receipts.length === 0) { %>
+        <tr><td colspan="6" class="muted">No courier sales yet.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<%- include('../partials/footer') %>

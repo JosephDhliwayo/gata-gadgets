@@ -1,0 +1,103 @@
+<%- include('../partials/header') %>
+<div class="page-header no-print">
+  <div>
+    <h1>Performance</h1>
+    <p class="subtitle">Sales and profit by day, week, and month, plus each cashier's monthly contribution.</p>
+  </div>
+  <button class="btn outline" onclick="window.print()">Print</button>
+</div>
+
+<div class="card no-print">
+  <form method="GET" action="/reports/performance" class="form-row" style="margin-bottom:0;">
+    <div class="field"><label for="from">From</label><input type="date" id="from" name="from" value="<%= from %>"></div>
+    <div class="field"><label for="to">To</label><input type="date" id="to" name="to" value="<%= to %>"></div>
+    <div class="field" style="flex:0; align-self:flex-end;"><button class="btn secondary" type="submit">Run</button></div>
+  </form>
+</div>
+
+<p class="muted">Period: <%= formatDate(from) %> to <%= formatDate(to) %>. Profit here is net (after cost of goods and, for the business-wide tables, operating expenses).</p>
+
+<div class="grid grid-3">
+  <div class="card">
+    <h3 class="mt-0">Daily</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Day</th><th class="num">Sales</th><th class="num">Profit</th></tr></thead>
+      <tbody>
+        <% daily.forEach(d => { %>
+          <tr>
+            <td><%= formatDate(d.period) %></td>
+            <td class="num">$<%= d.sales.toFixed(2) %></td>
+            <td class="num" style="color: <%= d.profit >= 0 ? 'var(--success)' : 'var(--danger)' %>;">$<%= d.profit.toFixed(2) %></td>
+          </tr>
+        <% }) %>
+        <% if (daily.length === 0) { %><tr><td colspan="3" class="muted">No activity in this period.</td></tr><% } %>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="mt-0">Weekly</h3>
+    <p class="muted" style="margin-top:-8px; font-size:0.78rem;">Week starting (Monday)</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Week</th><th class="num">Sales</th><th class="num">Profit</th></tr></thead>
+      <tbody>
+        <% weekly.forEach(w => { %>
+          <tr>
+            <td><%= formatDate(w.period) %></td>
+            <td class="num">$<%= w.sales.toFixed(2) %></td>
+            <td class="num" style="color: <%= w.profit >= 0 ? 'var(--success)' : 'var(--danger)' %>;">$<%= w.profit.toFixed(2) %></td>
+          </tr>
+        <% }) %>
+        <% if (weekly.length === 0) { %><tr><td colspan="3" class="muted">No activity in this period.</td></tr><% } %>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="mt-0">Monthly</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Month</th><th class="num">Sales</th><th class="num">Profit</th></tr></thead>
+      <tbody>
+        <% monthly.forEach(m => { %>
+          <tr>
+            <td><%= formatMonth(m.period) %></td>
+            <td class="num">$<%= m.sales.toFixed(2) %></td>
+            <td class="num" style="color: <%= m.profit >= 0 ? 'var(--success)' : 'var(--danger)' %>;">$<%= m.profit.toFixed(2) %></td>
+          </tr>
+        <% }) %>
+        <% if (monthly.length === 0) { %><tr><td colspan="3" class="muted">No activity in this period.</td></tr><% } %>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="mt-0">Profit by User, per Month</h3>
+  <p class="muted" style="margin-top:-8px;">Gross profit (revenue minus cost of goods) attributed to each cashier's own sales. Not reduced by business-wide operating expenses, since those aren't specific to any one person.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Month</th><th>User</th><th class="num">Revenue</th><th class="num">COGS</th><th class="num">Profit</th><th class="num">Commission %</th><th class="num">Commission Owed</th></tr></thead>
+    <tbody>
+      <% perUserMonthly.forEach(u => { %>
+        <tr>
+          <td><%= formatMonth(u.month) %></td>
+          <td><%= u.userName %></td>
+          <td class="num">$<%= u.revenue.toFixed(2) %></td>
+          <td class="num">$<%= u.cogs.toFixed(2) %></td>
+          <td class="num" style="color: <%= u.profit >= 0 ? 'var(--success)' : 'var(--danger)' %>;">$<%= u.profit.toFixed(2) %></td>
+          <td class="num"><%= u.commissionRate %>%</td>
+          <td class="num" style="color: var(--purple-dark); font-weight:600;">$<%= u.commission.toFixed(2) %></td>
+        </tr>
+      <% }) %>
+      <% if (perUserMonthly.length === 0) { %><tr><td colspan="7" class="muted">No activity in this period.</td></tr><% } %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<%- include('../partials/footer') %>

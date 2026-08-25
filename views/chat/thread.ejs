@@ -1,0 +1,31 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <div>
+    <h1>Chat · <%= otherUser.name %></h1>
+    <p class="subtitle"><span class="pill pill-muted"><%= otherUser.role %></span></p>
+  </div>
+  <a class="btn outline" href="/chat">All Conversations</a>
+</div>
+
+<div class="card">
+  <div class="chat-thread" id="chat-thread" data-other-user-id="<%= otherUser.id %>" data-current-user-id="<%= currentUser.id %>">
+    <% messages.forEach(m => { %>
+      <% const isMine = m.sender_id === currentUser.id; %>
+      <div class="chat-bubble <%= isMine ? 'mine' : 'theirs' %>" data-id="<%= m.id %>">
+        <%= m.body %>
+        <span class="chat-meta"><%= m.sender_name %> &middot; <%= formatDateTime(m.created_at) %></span>
+      </div>
+    <% }) %>
+    <% if (messages.length === 0) { %>
+      <p class="muted">No messages yet. Say hello!</p>
+    <% } %>
+  </div>
+
+  <form id="chat-form" class="chat-form" method="POST" action="/chat/<%= otherUser.id %>">
+    <textarea id="chat-body" name="body" placeholder="Type a message..." required maxlength="2000"></textarea>
+    <button class="btn" type="submit">Send</button>
+  </form>
+</div>
+
+<script src="/js/chat.js"></script>
+<%- include('../partials/footer') %>

@@ -1,0 +1,52 @@
+<%- include('../partials/header') %>
+<div class="page-header no-print">
+  <div>
+    <h1>Stock Valuation Report</h1>
+    <p class="subtitle">Current inventory value at cost and at retail price.</p>
+  </div>
+  <button class="btn outline" onclick="window.print()">Print</button>
+</div>
+<p class="muted">Generated: <%= formatDateTime(generatedAt) %></p>
+
+<div class="grid grid-3">
+  <div class="stat"><div class="label">Total Units on Hand</div><div class="value"><%= totals.units %></div></div>
+  <div class="stat"><div class="label">Value at Cost</div><div class="value">$<%= totals.cost.toFixed(2) %></div></div>
+  <div class="stat"><div class="label">Value at Retail</div><div class="value accent">$<%= totals.retail.toFixed(2) %></div></div>
+</div>
+
+<% if (lowStock.length > 0) { %>
+  <div class="alert alert-warning"><%= lowStock.length %> product(s) are at or below their reorder level.</div>
+<% } %>
+
+<div class="card">
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>SKU</th><th>Product</th><th>Category</th><th class="num">Qty</th><th class="num">Unit Cost</th><th class="num">Unit Price</th><th class="num">Value (Cost)</th><th class="num">Value (Retail)</th></tr>
+    </thead>
+    <tbody>
+      <% products.forEach(p => { %>
+        <tr>
+          <td><%= p.sku %></td>
+          <td><%= p.name %> <% if (p.quantity <= p.reorder_level) { %><span class="pill pill-warning">Low</span><% } %></td>
+          <td><%= p.category %></td>
+          <td class="num"><%= p.quantity %></td>
+          <td class="num">$<%= p.cost_price.toFixed(2) %></td>
+          <td class="num">$<%= p.selling_price.toFixed(2) %></td>
+          <td class="num">$<%= p.value_at_cost.toFixed(2) %></td>
+          <td class="num">$<%= p.value_at_retail.toFixed(2) %></td>
+        </tr>
+      <% }) %>
+      <% if (products.length === 0) { %><tr><td colspan="8" class="muted">No active products.</td></tr><% } %>
+    </tbody>
+    <tfoot>
+      <tr style="font-weight:700;">
+        <td colspan="6" class="num">Totals</td>
+        <td class="num">$<%= totals.cost.toFixed(2) %></td>
+        <td class="num">$<%= totals.retail.toFixed(2) %></td>
+      </tr>
+    </tfoot>
+  </table>
+  </div>
+</div>
+<%- include('../partials/footer') %>

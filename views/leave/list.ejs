@@ -1,0 +1,67 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <div>
+    <h1>Leave Requests</h1>
+    <p class="subtitle"><%= isAdmin ? 'Requests from staff for leave or off days.' : 'Your leave requests.' %></p>
+  </div>
+  <a class="btn" href="/leave/new">+ Request Leave</a>
+</div>
+
+<div class="card">
+  <div class="actions-row" style="margin-top:0;">
+    <a class="btn small <%= status === '' ? 'secondary' : 'outline' %>" href="/leave">All</a>
+    <a class="btn small <%= status === 'pending' ? 'secondary' : 'outline' %>" href="/leave?status=pending">Pending</a>
+    <a class="btn small <%= status === 'approved' ? 'secondary' : 'outline' %>" href="/leave?status=approved">Approved</a>
+    <a class="btn small <%= status === 'rejected' ? 'secondary' : 'outline' %>" href="/leave?status=rejected">Rejected</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <% if (isAdmin) { %><th>Staff</th><% } %>
+        <th>Dates</th><th>Reason</th><th>Status</th><th>Reviewed</th>
+        <% if (isAdmin) { %><th class="no-print"></th><% } %>
+      </tr>
+    </thead>
+    <tbody>
+      <% requests.forEach(r => { %>
+        <tr>
+          <% if (isAdmin) { %><td><%= r.user_name %></td><% } %>
+          <td><%= formatDate(r.start_date) %><% if (r.end_date !== r.start_date) { %> &rarr; <%= formatDate(r.end_date) %><% } %></td>
+          <td><%= r.reason || '-' %></td>
+          <td>
+            <span class="pill <%= r.status === 'approved' ? 'pill-success' : (r.status === 'rejected' ? 'pill-danger' : 'pill-warning') %>">
+              <%= r.status %>
+            </span>
+          </td>
+          <td>
+            <% if (r.status !== 'pending') { %>
+              <%= r.reviewed_by_name %><br><span class="muted"><%= formatDateTime(r.reviewed_at) %></span>
+              <% if (r.review_note) { %><br><span class="muted"><%= r.review_note %></span><% } %>
+            <% } else { %>-<% } %>
+          </td>
+          <% if (isAdmin) { %>
+            <td class="no-print">
+              <% if (r.status === 'pending') { %>
+                <form method="POST" action="/leave/<%= r.id %>/approve" style="display:inline;" onsubmit="return confirm('Approve this leave request?');">
+                  <button class="btn small secondary" type="submit">Approve</button>
+                </form>
+                <form method="POST" action="/leave/<%= r.id %>/reject" style="display:inline;" onsubmit="return confirm('Reject this leave request?');">
+                  <button class="btn small danger" type="submit">Reject</button>
+                </form>
+              <% } %>
+            </td>
+          <% } %>
+        </tr>
+      <% }) %>
+      <% if (requests.length === 0) { %>
+        <tr><td colspan="<%= isAdmin ? 6 : 4 %>" class="muted">No leave requests found.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<%- include('../partials/footer') %>

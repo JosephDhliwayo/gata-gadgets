@@ -1,0 +1,95 @@
+<%- include('../partials/header') %>
+<div class="page-header no-print">
+  <div>
+    <h1>Sales Report</h1>
+    <p class="subtitle">Completed sales for the selected period.</p>
+  </div>
+  <button class="btn outline" onclick="window.print()">Print</button>
+</div>
+
+<div class="card no-print">
+  <form method="GET" action="/reports/sales" class="form-row" style="margin-bottom:0;">
+    <div class="field"><label for="from">From</label><input type="date" id="from" name="from" value="<%= from %>"></div>
+    <div class="field"><label for="to">To</label><input type="date" id="to" name="to" value="<%= to %>"></div>
+    <div class="field" style="flex:0; align-self:flex-end;"><button class="btn secondary" type="submit">Run Report</button></div>
+  </form>
+</div>
+
+<p class="muted">Period: <%= formatDate(from) %> to <%= formatDate(to) %></p>
+
+<div class="grid grid-4">
+  <div class="stat"><div class="label">Total Sales</div><div class="value accent">$<%= totals.total.toFixed(2) %></div></div>
+  <div class="stat"><div class="label">Approved Returns</div><div class="value danger">$<%= totalReturns.toFixed(2) %></div></div>
+  <div class="stat"><div class="label">Approved Discounts</div><div class="value danger">$<%= approvedDiscounts.total.toFixed(2) %></div><div class="muted" style="font-size:0.78rem; margin-top:2px;"><%= approvedDiscounts.count %> discount(s)</div></div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h3 class="mt-0">Sales by Product</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Product</th><th class="num">Qty Sold</th><th class="num">Revenue</th></tr></thead>
+      <tbody>
+        <% byProduct.forEach(p => { %>
+          <tr><td><%= p.product_name %></td><td class="num"><%= p.qty_sold %></td><td class="num">$<%= p.revenue.toFixed(2) %></td></tr>
+        <% }) %>
+        <% if (byProduct.length === 0) { %><tr><td colspan="3" class="muted">No sales in this period.</td></tr><% } %>
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <div class="card">
+    <h3 class="mt-0">Sales by Cashier</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Cashier</th><th class="num">Receipts</th><th class="num">Revenue</th></tr></thead>
+      <tbody>
+        <% byCashier.forEach(c => { %>
+          <tr><td><%= c.cashier_name %></td><td class="num"><%= c.receipt_count %></td><td class="num">$<%= c.revenue.toFixed(2) %></td></tr>
+        <% }) %>
+        <% if (byCashier.length === 0) { %><tr><td colspan="3" class="muted">No sales in this period.</td></tr><% } %>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="mt-0">Approved Returns (reviewed in this period)</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Request #</th><th>Receipt #</th><th>Requested By</th><th>Reviewed</th><th class="num">Return Value</th></tr></thead>
+    <tbody>
+      <% returns.forEach(rt => { %>
+        <tr>
+          <td><a href="/returns/<%= rt.id %>">#<%= rt.id %></a></td>
+          <td><%= rt.receipt_number %></td>
+          <td><%= rt.requested_by_name %></td>
+          <td><%= formatDateTime(rt.reviewed_at) %></td>
+          <td class="num">$<%= rt.return_value.toFixed(2) %></td>
+        </tr>
+      <% }) %>
+      <% if (returns.length === 0) { %><tr><td colspan="5" class="muted">No approved returns in this period.</td></tr><% } %>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="mt-0">Receipt Detail</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Receipt #</th><th>Date</th><th>Cashier</th><th>Customer</th><th class="num">Total</th></tr></thead>
+    <tbody>
+      <% receipts.forEach(r => { %>
+        <tr>
+          <td><%= r.receipt_number %></td><td><%= formatDateTime(r.created_at) %></td><td><%= r.cashier_name %></td>
+          <td><%= r.customer_name || '-' %></td><td class="num">$<%= r.total.toFixed(2) %></td>
+        </tr>
+      <% }) %>
+      <% if (receipts.length === 0) { %><tr><td colspan="5" class="muted">No receipts in this period.</td></tr><% } %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,36 @@
+<%- include('../partials/header') %>
+<div class="page-header"><h1><%= title %></h1></div>
+<div class="card" style="max-width:520px;">
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <form method="POST" action="/users">
+    <div class="field">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" value="<%= formData ? formData.name || '' : '' %>" required>
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" value="<%= formData ? formData.email || '' : '' %>" required>
+    </div>
+    <div class="field">
+      <label for="clock_in_id">Clock-in ID</label>
+      <input type="text" id="clock_in_id" name="clock_in_id" value="<%= formData ? formData.clock_in_id || '' : '' %>" required>
+      <p class="muted" style="font-size:0.8rem; margin:4px 0 0;">This is what the user types to log in, instead of their email. A suggested next ID is pre-filled — feel free to change it.</p>
+    </div>
+    <div class="field">
+      <label for="password">Temporary Password</label>
+      <input type="password" id="password" name="password" minlength="6" required>
+    </div>
+    <div class="field">
+      <label for="role">Role</label>
+      <select id="role" name="role">
+        <option value="user">User (captures receipts)</option>
+        <option value="admin">Administrator (full access)</option>
+      </select>
+    </div>
+    <div class="actions-row">
+      <button class="btn" type="submit">Create User</button>
+      <a class="btn outline" href="/users">Cancel</a>
+    </div>
+  </form>
+</div>
+<%- include('../partials/footer') %>

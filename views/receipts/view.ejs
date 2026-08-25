@@ -1,0 +1,91 @@
+<%- include('../partials/header') %>
+<div class="page-header no-print">
+  <h1>Receipt <%= receipt.receipt_number %></h1>
+  <div class="actions-row" style="margin-top:0;">
+    <button class="btn outline" onclick="window.print()">Print</button>
+    <% if (currentUser.id === receipt.user_id && receipt.status === 'completed') { %>
+      <a class="btn secondary" href="/returns/new/<%= receipt.id %>">Request Return</a>
+    <% } %>
+    <% if (currentUser.role === 'admin' && receipt.status !== 'void') { %>
+      <form method="POST" action="/receipts/<%= receipt.id %>/void" onsubmit="return confirm('Void this receipt and restock its items?');">
+        <button class="btn danger" type="submit">Void Receipt</button>
+      </form>
+    <% } %>
+    <% if (currentUser.role === 'admin' && receipt.payment_method === 'courier') { %>
+      <a class="btn secondary" href="/courier">Courier Balance</a>
+    <% } %>
+    <% if (currentUser.role === 'admin' && discountRequest && discountRequest.status === 'pending') { %>
+      <a class="btn secondary" href="/discounts?status=pending">Review Discount</a>
+    <% } %>
+  </div>
+</div>
+
+<% if (discountRequest) { %>
+  <% if (discountRequest.status === 'pending') { %>
+    <div class="alert alert-warning no-print">A $<%= discountRequest.discount_amount.toFixed(2) %> discount on this sale is <strong>pending admin approval</strong>.</div>
+  <% } else if (discountRequest.status === 'approved') { %>
+    <div class="alert alert-success no-print">A $<%= discountRequest.discount_amount.toFixed(2) %> discount on this sale was approved by <%= discountRequest.reviewed_by_name %> on <%= formatDateTime(discountRequest.reviewed_at) %>.</div>
+  <% } else { %>
+    <div class="alert alert-error no-print">A $<%= discountRequest.discount_amount.toFixed(2) %> discount on this sale was rejected by <%= discountRequest.reviewed_by_name %> on <%= formatDateTime(discountRequest.reviewed_at) %>.</div>
+  <% } %>
+<% } %>
+
+<% if (receipt.status === 'void') { %>
+  <div class="alert alert-warning no-print">This receipt has been voided. Items were returned to stock.</div>
+<% } %>
+<% if (currentUser.id !== receipt.user_id && receipt.status === 'completed') { %>
+  <div class="alert alert-warning no-print">Only <%= receipt.cashier_name %>, the cashier who captured this sale, can request a return for it.</div>
+<% } %>
+<% if (receipt.payment_method === 'courier') { %>
+  <div class="alert alert-warning no-print">This is a credit sale via courier — <strong>$<%= receipt.total.toFixed(2) %></strong> was added to the courier balance to be collected.</div>
+<% } %>
+
+<div class="receipt-print">
+  <h2>GATA GADGETS</h2>
+  <p class="center muted">Sales Receipt</p>
+  <p class="center muted"><%= receipt.receipt_number %><br><%= formatDateTime(receipt.created_at) %></p>
+  <hr>
+  <%
+    const paymentLabels = { cash: 'Cash', bank_transfer: 'Bank Transfer', ecocash_usd: 'Ecocash USD', courier: 'Courier (Credit Sale)', card: 'Card', mobile_money: 'Mobile Money' };
+  %>
+  <p>
+    Cashier: <%= receipt.cashier_name %><br>
+    Customer: <%= receipt.customer_name || 'Walk-in' %><br>
+    Payment: <%= paymentLabels[receipt.payment_method] || receipt.payment_method %>
+    <% if (receipt.payment_method === 'courier' && receipt.courier_destination) { %><br>Destination: <%= receipt.courier_destination %><% } %>
+  </p>
+  <table>
+    <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Total</th></tr></thead>
+    <tbody>
+      <% items.forEach(it => { %>
+        <tr>
+          <td><%= it.product_name %></td>
+          <td class="num"><%= it.quantity %></td>
+          <td class="num">$<%= it.unit_price.toFixed(2) %></td>
+          <td class="num">$<%= it.line_total.toFixed(2) %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <table class="totals">
+    <tr><td>Subtotal</td><td class="text-right">$<%= receipt.subtotal.toFixed(2) %></td></tr>
+    <% if (receipt.tax_amount > 0) { %>
+      <tr><td>Tax (<%= receipt.tax_rate %>%)</td><td class="text-right">$<%= receipt.tax_amount.toFixed(2) %></td></tr>
+    <% } %>
+    <tr><td class="grand">Total</td><td class="text-right grand">$<%= receipt.total.toFixed(2) %></td></tr>
+    <% if (receipt.payment_method === 'cash' && receipt.cash_received !== null) { %>
+      <tr><td>Cash Received</td><td class="text-right">$<%= receipt.cash_received.toFixed(2) %></td></tr>
+      <tr><td class="grand">Change Due</td><td class="text-right grand">$<%= receipt.change_due.toFixed(2) %></td></tr>
+    <% } %>
+  </table>
+  <p class="center muted" style="margin-top:20px;">Thank you for shopping with GATA GADGETS!</p>
+</div>
+
+<div class="actions-row no-print">
+  <% if (currentUser.role === 'admin') { %>
+    <a class="btn outline" href="/receipts">Back to Receipts</a>
+  <% } else { %>
+    <a class="btn outline" href="/receipts/new">New Receipt</a>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

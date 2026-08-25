@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <div>
+    <h1>Chat</h1>
+    <p class="subtitle">Start a conversation with any teammate.</p>
+  </div>
+</div>
+
+<div class="card">
+  <% colleagues.forEach(c => { %>
+    <a class="chat-list-item" href="/chat/<%= c.user_id %>">
+      <div>
+        <strong><%= c.name %></strong>
+        <span class="pill pill-muted" style="margin-left:6px;"><%= c.role %></span>
+        <% if (!c.active) { %><span class="pill pill-muted">disabled</span><% } %>
+        <div class="chat-preview"><%= c.last_message ? c.last_message : 'No messages yet — say hello.' %></div>
+      </div>
+      <div style="text-align:right; flex-shrink:0;">
+        <% if (c.unread_count > 0) { %><span class="nav-badge" style="background:var(--pink);"><%= c.unread_count %></span><% } %>
+        <div class="muted" style="font-size:0.75rem; margin-top:4px;"><%= c.last_message_at ? formatDateTime(c.last_message_at) : '' %></div>
+      </div>
+    </a>
+  <% }) %>
+  <% if (colleagues.length === 0) { %>
+    <p class="muted">No other staff accounts to chat with yet.</p>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

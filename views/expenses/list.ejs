@@ -1,0 +1,36 @@
+<%- include('../partials/header') %>
+<div class="page-header">
+  <div>
+    <h1>Expenses</h1>
+    <p class="subtitle">Operating expenses used in the Profit &amp; Loss statement.</p>
+  </div>
+  <a class="btn" href="/expenses/new">+ Add Expense</a>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Date</th><th>Description</th><th>Category</th><th class="num">Amount</th><th>Recorded By</th><th></th></tr></thead>
+    <tbody>
+      <% expenses.forEach(e => { %>
+        <tr>
+          <td><%= formatDate(e.expense_date) %></td>
+          <td><%= e.description %></td>
+          <td><%= e.category %></td>
+          <td class="num">$<%= e.amount.toFixed(2) %></td>
+          <td><%= e.recorded_by_name %></td>
+          <td>
+            <form method="POST" action="/expenses/<%= e.id %>/delete" onsubmit="return confirm('Delete this expense?');">
+              <button class="btn small danger" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+      <% if (expenses.length === 0) { %>
+        <tr><td colspan="6" class="muted">No expenses recorded yet.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+  </div>
+</div>
+<%- include('../partials/footer') %>
