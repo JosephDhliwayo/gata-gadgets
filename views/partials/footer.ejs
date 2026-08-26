@@ -1,4 +1,9 @@
 </div>
 <footer class="site-footer">GATA GADGETS &middot; Receipts &amp; Inventory Management &middot; &copy; <%= new Date().getFullYear() %></footer>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  }
+</script>
 </body>
 </html>
