@@ -46,7 +46,6 @@
       </form>
 
       <p class="hint" id="staff-hint">Enter the Clock-in ID assigned to you by your administrator.</p>
-      <p class="hint" id="admin-hint" style="display:none;">Default admin: admin@gatagadgets.com / Admin@123<br>Change this password after first login.</p>
     </div>
   </div>
 
@@ -57,7 +56,6 @@
       const staffForm = document.getElementById('staff-form');
       const adminForm = document.getElementById('admin-form');
       const staffHint = document.getElementById('staff-hint');
-      const adminHint = document.getElementById('admin-hint');
       const clockInInput = document.getElementById('clock_in_id');
       const emailInput = document.getElementById('email');
       const passwordInput = document.getElementById('password');
@@ -68,7 +66,6 @@
         staffForm.style.display = '';
         adminForm.style.display = 'none';
         staffHint.style.display = '';
-        adminHint.style.display = 'none';
         clockInInput.required = true;
         emailInput.required = false;
         passwordInput.required = false;
@@ -80,7 +77,6 @@
         staffBtn.classList.remove('active');
         adminForm.style.display = '';
         staffForm.style.display = 'none';
-        adminHint.style.display = '';
         staffHint.style.display = 'none';
         clockInInput.required = false;
         emailInput.required = true;
