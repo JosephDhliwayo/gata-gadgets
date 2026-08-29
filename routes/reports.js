@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../db/database');
 const { requireAdmin } = require('../middleware/auth');
+const { getProfitLossSeries } = require('../lib/analytics');
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -275,7 +276,18 @@ router.get('/performance', (req, res) => {
     })
     .sort((a, b) => b.month.localeCompare(a.month) || b.profit - a.profit);
 
-  res.render('reports/performance', { title: 'Performance', from, to, daily, weekly, monthly, perUserMonthly });
+  const users = [...usersById.entries()]
+    .map(([id, u]) => ({ id, name: u.name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const selectedUserId = req.query.userId ? parseInt(req.query.userId, 10) : null;
+  const selectedUser = selectedUserId ? usersById.get(selectedUserId) : null;
+  const userSeries = selectedUser ? getProfitLossSeries(db, selectedUserId) : null;
+
+  res.render('reports/performance', {
+    title: 'Performance', from, to, daily, weekly, monthly, perUserMonthly,
+    users, selectedUserId, selectedUserName: selectedUser ? selectedUser.name : null, userSeries
+  });
 });
 
 router.get('/attendance', (req, res) => {

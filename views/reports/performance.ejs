@@ -100,4 +100,43 @@
   </table>
   </div>
 </div>
+
+<div class="card no-print">
+  <div class="page-header" style="margin-bottom:8px;">
+    <h3 class="mt-0" style="margin-bottom:0;">Profit by User — Daily / Weekly / Monthly</h3>
+  </div>
+  <form method="GET" action="/reports/performance" class="form-row" style="margin-bottom:16px;">
+    <input type="hidden" name="from" value="<%= from %>">
+    <input type="hidden" name="to" value="<%= to %>">
+    <div class="field">
+      <label for="userId">Staff Member</label>
+      <select id="userId" name="userId" onchange="this.form.submit()">
+        <option value="">Select a staff member&hellip;</option>
+        <% users.forEach(u => { %>
+          <option value="<%= u.id %>" <%= selectedUserId === u.id ? 'selected' : '' %>><%= u.name %></option>
+        <% }) %>
+      </select>
+    </div>
+  </form>
+
+  <% if (userSeries) { %>
+    <p class="muted" style="margin-top:-8px;">Gross profit (revenue minus cost of goods, net of that user's own approved returns) for <strong><%= selectedUserName %></strong> — not reduced by business-wide operating expenses.</p>
+    <div class="pl-tabs">
+      <button type="button" class="pl-tab active" data-granularity="daily">Daily</button>
+      <button type="button" class="pl-tab" data-granularity="weekly">Weekly</button>
+      <button type="button" class="pl-tab" data-granularity="monthly">Monthly</button>
+    </div>
+    <div class="pl-legend">
+      <span class="pl-legend-item"><span class="pl-swatch" style="background:#7c3aed;"></span>Sales</span>
+      <span class="pl-legend-item"><span class="pl-swatch" style="background:#16a34a;"></span>Profit</span>
+    </div>
+    <div class="pl-chart-scroll">
+      <div id="pl-chart"></div>
+    </div>
+    <script>window.PL_SERIES = <%- JSON.stringify(userSeries) %>;</script>
+    <script src="/js/pl-chart.js"></script>
+  <% } else { %>
+    <p class="muted">Select a staff member above to see their own daily, weekly, and monthly profit trend.</p>
+  <% } %>
+</div>
 <%- include('../partials/footer') %>
