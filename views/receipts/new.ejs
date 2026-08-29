@@ -35,20 +35,20 @@
     <div class="form-row">
       <div class="field">
         <label for="customer_name">Customer Name (optional)</label>
-        <input type="text" id="customer_name" name="customer_name" list="customer-names-datalist" placeholder="Search or type a name">
+        <input type="text" id="customer_name" name="customer_name" list="customer-names-datalist" placeholder="Search or type a name" value="<%= formData ? (formData.customer_name || '') : '' %>">
       </div>
       <div class="field">
         <label for="customer_phone">Phone (required)</label>
-        <input type="tel" id="customer_phone" name="customer_phone" list="customer-phones-datalist" placeholder="Search or type a phone number" required>
+        <input type="tel" id="customer_phone" name="customer_phone" list="customer-phones-datalist" placeholder="Search or type a phone number" required value="<%= formData ? (formData.customer_phone || '') : '' %>">
         <div id="loyalty-hint" class="muted" style="font-size:0.8rem; margin-top:4px; display:none;"></div>
       </div>
       <div class="field">
         <label for="payment_method">Payment Method</label>
         <select id="payment_method" name="payment_method">
-          <option value="cash">Cash</option>
-          <option value="bank_transfer">Bank Transfer</option>
-          <option value="ecocash_usd">Ecocash USD</option>
-          <option value="courier">Courier</option>
+          <option value="cash" <%= (!formData || formData.payment_method === 'cash') ? 'selected' : '' %>>Cash</option>
+          <option value="bank_transfer" <%= (formData && formData.payment_method === 'bank_transfer') ? 'selected' : '' %>>Bank Transfer</option>
+          <option value="ecocash_usd" <%= (formData && formData.payment_method === 'ecocash_usd') ? 'selected' : '' %>>Ecocash USD</option>
+          <option value="courier" <%= (formData && formData.payment_method === 'courier') ? 'selected' : '' %>>Courier</option>
         </select>
         <div id="courier-hint" class="muted" style="font-size:0.8rem; margin-top:4px; display:none; color:var(--warning);">
           Courier is a credit sale — goods go out now, and this will show as an outstanding trade receivable until an admin marks it cleared.
@@ -56,7 +56,7 @@
       </div>
       <div class="field" id="courier-destination-field" style="display:none;">
         <label for="courier_destination">Courier Destination</label>
-        <input type="text" id="courier_destination" name="courier_destination" list="courier-destinations-datalist" placeholder="Search or type a destination">
+        <input type="text" id="courier_destination" name="courier_destination" list="courier-destinations-datalist" placeholder="Search or type a destination" value="<%= formData ? (formData.courier_destination || '') : '' %>">
       </div>
     </div>
   </div>
@@ -68,17 +68,21 @@
       <div>Product</div><div>Qty</div><div>Unit Price</div><div>Line Total</div><div></div>
     </div>
     <div id="line-items">
-      <div class="line-item-row">
-        <div>
-          <input type="text" class="product-search" list="products-datalist" placeholder="Search product..." autocomplete="off" required>
-          <input type="hidden" name="product_id" class="product-id-input">
-          <div class="product-hint muted" style="font-size:0.75rem; margin-top:2px;"></div>
+      <% const initialLines = (lines && lines.length > 0) ? lines : [{}]; %>
+      <% initialLines.forEach(line => { %>
+        <% const prod = line.product_id ? products.find(p => String(p.id) === String(line.product_id)) : null; %>
+        <div class="line-item-row">
+          <div>
+            <input type="text" class="product-search" list="products-datalist" placeholder="Search product..." autocomplete="off" required value="<%= prod ? `${prod.name} (${prod.sku})` : '' %>">
+            <input type="hidden" name="product_id" class="product-id-input" value="<%= line.product_id || '' %>">
+            <div class="product-hint muted" style="font-size:0.75rem; margin-top:2px;"><%= prod ? `$${prod.selling_price.toFixed(2)} catalog price · ${prod.quantity} in stock` : '' %></div>
+          </div>
+          <div><input type="number" name="quantity" class="qty-input" min="1" value="<%= line.quantity || 1 %>" <%= prod ? `max="${prod.quantity}"` : '' %> required></div>
+          <div><input type="number" name="unit_price" class="price-input" step="0.01" min="0" value="<%= line.unit_price || '' %>" <%= prod ? '' : 'disabled' %>></div>
+          <div class="line-total">-</div>
+          <div><button type="button" class="btn small outline remove-line-btn">&times;</button></div>
         </div>
-        <div><input type="number" name="quantity" class="qty-input" min="1" value="1" required></div>
-        <div><input type="number" name="unit_price" class="price-input" step="0.01" min="0" disabled></div>
-        <div class="line-total">-</div>
-        <div><button type="button" class="btn small outline remove-line-btn">&times;</button></div>
-      </div>
+      <% }) %>
     </div>
     <button type="button" class="btn small secondary" id="add-line-btn">+ Add Item</button>
 
@@ -104,7 +108,7 @@
 
       <div id="cash-fields" class="field" style="margin-top:14px;">
         <label for="cash_received">Cash Received</label>
-        <input type="number" id="cash_received" name="cash_received" step="0.01" min="0" placeholder="0.00">
+        <input type="number" id="cash_received" name="cash_received" step="0.01" min="0" placeholder="0.00" value="<%= formData && formData.cash_received ? formData.cash_received : '' %>">
       </div>
       <table class="totals" id="change-row" style="display:none;">
         <tr><td class="grand">Change Due</td><td class="text-right grand" id="change-display">$0.00</td></tr>

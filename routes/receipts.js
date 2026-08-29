@@ -36,7 +36,9 @@ router.get('/new', (req, res) => {
     products: availableProducts(),
     customers: knownCustomers(),
     courierDestinations: knownCourierDestinations(),
-    error: null
+    error: null,
+    formData: null,
+    lines: []
   });
 });
 
@@ -46,9 +48,14 @@ router.post('/', (req, res) => {
   const quantities = Array.isArray(quantity) ? quantity : (quantity ? [quantity] : []);
   const unitPrices = Array.isArray(unit_price) ? unit_price : (unit_price ? [unit_price] : []);
 
+  const submittedLines = productIds.map((pid, i) => ({
+    product_id: pid, quantity: quantities[i] || '', unit_price: unitPrices[i] || ''
+  }));
+
   const rerender = (status, error) => res.status(status).render('receipts/new', {
     title: 'New Receipt', products: availableProducts(), customers: knownCustomers(),
-    courierDestinations: knownCourierDestinations(), error
+    courierDestinations: knownCourierDestinations(), error,
+    formData: req.body, lines: submittedLines
   });
 
   const cleanPhone = (customer_phone || '').trim() || null;
