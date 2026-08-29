@@ -34,19 +34,21 @@
 
 <div class="grid grid-2">
   <div class="card">
-    <h3 class="mt-0">Top Performers (All Time)</h3>
+    <h3 class="mt-0">Top Performers — Profit</h3>
+    <p class="muted" style="margin-top:-8px; font-size:0.8rem;">Gross profit (revenue minus cost of goods, net of returns), ranked by this month.</p>
     <% if (topPerformers.length === 0) { %>
       <p class="muted">No receipts captured yet.</p>
     <% } else { %>
       <div class="table-wrap">
       <table>
-        <thead><tr><th>User</th><th class="num">Receipts</th><th class="num">Total Sales</th></tr></thead>
+        <thead><tr><th>User</th><th class="num">Today</th><th class="num">This Week</th><th class="num">This Month</th></tr></thead>
         <tbody>
           <% topPerformers.forEach(u => { %>
             <tr>
               <td><%= u.name %></td>
-              <td class="num"><%= u.receipt_count %></td>
-              <td class="num">$<%= u.total_sales.toFixed(2) %></td>
+              <td class="num" style="color: <%= u.todayProfit >= 0 ? 'var(--success)' : 'var(--danger)' %>;">$<%= u.todayProfit.toFixed(2) %></td>
+              <td class="num" style="color: <%= u.weekProfit >= 0 ? 'var(--success)' : 'var(--danger)' %>;">$<%= u.weekProfit.toFixed(2) %></td>
+              <td class="num" style="color: <%= u.monthProfit >= 0 ? 'var(--success)' : 'var(--danger)' %>;">$<%= u.monthProfit.toFixed(2) %></td>
             </tr>
           <% }) %>
         </tbody>

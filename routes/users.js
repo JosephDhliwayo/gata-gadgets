@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('../db/database');
 const { requireAdmin } = require('../middleware/auth');
+const { getPeriodFinancials } = require('../lib/analytics');
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -30,9 +31,24 @@ router.get('/', (req, res) => {
     SELECT COUNT(DISTINCT user_id) AS c FROM receipts WHERE status = 'completed' AND date(created_at) = date(?)
   `).get(today).c;
 
+  const weekStart = (() => {
+    const dt = new Date(`${today}T00:00:00Z`);
+    const dow = dt.getUTCDay(); // 0 = Sunday .. 6 = Saturday
+    const diff = dow === 0 ? -6 : 1 - dow;
+    dt.setUTCDate(dt.getUTCDate() + diff);
+    return dt.toISOString().slice(0, 10);
+  })();
+  const monthStart = today.slice(0, 7) + '-01';
+
   const topPerformers = [...users]
     .filter(u => u.receipt_count > 0)
-    .sort((a, b) => b.total_sales - a.total_sales)
+    .map(u => ({
+      ...u,
+      todayProfit: getPeriodFinancials(db, today, today, u.id).profit,
+      weekProfit: getPeriodFinancials(db, weekStart, today, u.id).profit,
+      monthProfit: getPeriodFinancials(db, monthStart, today, u.id).profit
+    }))
+    .sort((a, b) => b.monthProfit - a.monthProfit)
     .slice(0, 5);
 
   res.render('users/list', {
