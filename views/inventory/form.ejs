@@ -18,7 +18,10 @@
     </div>
     <div class="field">
       <label for="category">Category</label>
-      <input type="text" id="category" name="category" value="<%= product ? product.category || '' : '' %>" placeholder="e.g. Audio, Chargers, Accessories">
+      <input type="text" id="category" name="category" list="categories-datalist" value="<%= product ? product.category || '' : '' %>" placeholder="Choose an existing category or type a new one" autocomplete="off">
+      <datalist id="categories-datalist">
+        <% categories.forEach(c => { %><option value="<%= c %>"></option><% }) %>
+      </datalist>
     </div>
     <div class="form-row">
       <div class="field">

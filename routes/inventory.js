@@ -6,6 +6,14 @@ const router = express.Router();
 
 router.use(requireAdmin);
 
+function getCategories() {
+  return db.prepare(`
+    SELECT DISTINCT category FROM products
+    WHERE category IS NOT NULL AND category != ''
+    ORDER BY category
+  `).all().map(r => r.category);
+}
+
 router.get('/', (req, res) => {
   const q = (req.query.q || '').trim();
   let products;
@@ -21,13 +29,13 @@ router.get('/', (req, res) => {
 });
 
 router.get('/new', (req, res) => {
-  res.render('inventory/form', { title: 'Add Product', product: null, error: null });
+  res.render('inventory/form', { title: 'Add Product', product: null, error: null, categories: getCategories() });
 });
 
 router.post('/', (req, res) => {
   const { sku, name, category, cost_price, selling_price, quantity, reorder_level } = req.body;
   if (!sku || !name) {
-    return res.status(400).render('inventory/form', { title: 'Add Product', product: req.body, error: 'SKU and Name are required.' });
+    return res.status(400).render('inventory/form', { title: 'Add Product', product: req.body, error: 'SKU and Name are required.', categories: getCategories() });
   }
   try {
     const info = db.prepare(`
@@ -52,21 +60,21 @@ router.post('/', (req, res) => {
     res.redirect('/inventory');
   } catch (err) {
     const msg = String(err.message || '').includes('UNIQUE') ? 'A product with that SKU already exists.' : 'Could not save product.';
-    res.status(400).render('inventory/form', { title: 'Add Product', product: req.body, error: msg });
+    res.status(400).render('inventory/form', { title: 'Add Product', product: req.body, error: msg, categories: getCategories() });
   }
 });
 
 router.get('/:id/edit', (req, res) => {
   const product = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
   if (!product) return res.status(404).render('errors/404', { title: 'Not Found' });
-  res.render('inventory/form', { title: 'Edit Product', product, error: null });
+  res.render('inventory/form', { title: 'Edit Product', product, error: null, categories: getCategories() });
 });
 
 router.post('/:id', (req, res) => {
   const { sku, name, category, cost_price, selling_price, reorder_level } = req.body;
   if (!sku || !name) {
     const product = { ...req.body, id: req.params.id };
-    return res.status(400).render('inventory/form', { title: 'Edit Product', product, error: 'SKU and Name are required.' });
+    return res.status(400).render('inventory/form', { title: 'Edit Product', product, error: 'SKU and Name are required.', categories: getCategories() });
   }
   try {
     db.prepare(`
@@ -85,7 +93,7 @@ router.post('/:id', (req, res) => {
   } catch (err) {
     const msg = String(err.message || '').includes('UNIQUE') ? 'A product with that SKU already exists.' : 'Could not update product.';
     const product = { ...req.body, id: req.params.id };
-    res.status(400).render('inventory/form', { title: 'Edit Product', product, error: msg });
+    res.status(400).render('inventory/form', { title: 'Edit Product', product, error: msg, categories: getCategories() });
   }
 });
 
