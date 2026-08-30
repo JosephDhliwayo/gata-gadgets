@@ -2,15 +2,15 @@ const express = require('express');
 const db = require('../db/database');
 const { requireAdmin } = require('../middleware/auth');
 const { getProfitLossSeries } = require('../lib/analytics');
+const { nowHarare } = require('../lib/time');
 
 const router = express.Router();
 router.use(requireAdmin);
 
 function defaultRange() {
-  const today = new Date();
-  const first = new Date(today.getFullYear(), today.getMonth(), 1);
-  const iso = (d) => d.toISOString().slice(0, 10);
-  return { from: iso(first), to: iso(today) };
+  const today = nowHarare().toISOString().slice(0, 10);
+  const first = today.slice(0, 7) + '-01';
+  return { from: first, to: today };
 }
 
 router.get('/sales', (req, res) => {
@@ -84,7 +84,7 @@ router.get('/stock-valuation', (req, res) => {
 
   const lowStock = products.filter(p => p.quantity <= p.reorder_level);
 
-  res.render('reports/stock-valuation', { title: 'Stock Valuation', products, totals, lowStock, generatedAt: new Date().toISOString() });
+  res.render('reports/stock-valuation', { title: 'Stock Valuation', products, totals, lowStock, generatedAt: nowHarare().toISOString() });
 });
 
 router.get('/profit-loss', (req, res) => {
@@ -137,9 +137,9 @@ router.get('/profit-loss', (req, res) => {
 });
 
 function defaultTrendRange() {
-  const today = new Date();
+  const today = nowHarare();
   const start = new Date(today);
-  start.setDate(start.getDate() - 89);
+  start.setUTCDate(start.getUTCDate() - 89);
   const iso = (d) => d.toISOString().slice(0, 10);
   return { from: iso(start), to: iso(today) };
 }

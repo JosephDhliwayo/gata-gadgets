@@ -39,8 +39,8 @@ router.post('/', (req, res) => {
   }
   try {
     const info = db.prepare(`
-      INSERT INTO products (sku, name, category, cost_price, selling_price, quantity, reorder_level)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO products (sku, name, category, cost_price, selling_price, quantity, reorder_level, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now', '+2 hours'), datetime('now', '+2 hours'))
     `).run(
       sku.trim(),
       name.trim(),
@@ -53,8 +53,8 @@ router.post('/', (req, res) => {
     const qty = parseInt(quantity, 10) || 0;
     if (qty > 0) {
       db.prepare(`
-        INSERT INTO stock_adjustments (product_id, type, quantity_change, note, recorded_by)
-        VALUES (?, 'restock', ?, 'Initial stock on creation', ?)
+        INSERT INTO stock_adjustments (product_id, type, quantity_change, note, recorded_by, created_at)
+        VALUES (?, 'restock', ?, 'Initial stock on creation', ?, datetime('now', '+2 hours'))
       `).run(info.lastInsertRowid, qty, req.session.user.id);
     }
     res.redirect('/inventory');
@@ -78,7 +78,7 @@ router.post('/:id', (req, res) => {
   }
   try {
     db.prepare(`
-      UPDATE products SET sku = ?, name = ?, category = ?, cost_price = ?, selling_price = ?, reorder_level = ?, updated_at = datetime('now')
+      UPDATE products SET sku = ?, name = ?, category = ?, cost_price = ?, selling_price = ?, reorder_level = ?, updated_at = datetime('now', '+2 hours')
       WHERE id = ?
     `).run(
       sku.trim(),
@@ -105,10 +105,10 @@ router.post('/:id/restock', (req, res) => {
 
   const type = qty < 0 ? 'correction' : 'restock';
   const tx = db.transaction(() => {
-    db.prepare('UPDATE products SET quantity = quantity + ?, updated_at = datetime(\'now\') WHERE id = ?').run(qty, product.id);
+    db.prepare('UPDATE products SET quantity = quantity + ?, updated_at = datetime(\'now\', \'+2 hours\') WHERE id = ?').run(qty, product.id);
     db.prepare(`
-      INSERT INTO stock_adjustments (product_id, type, quantity_change, note, recorded_by)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO stock_adjustments (product_id, type, quantity_change, note, recorded_by, created_at)
+      VALUES (?, ?, ?, ?, ?, datetime('now', '+2 hours'))
     `).run(product.id, type, qty, note || null, req.session.user.id);
   });
   tx();
@@ -116,7 +116,7 @@ router.post('/:id/restock', (req, res) => {
 });
 
 router.post('/:id/delete', (req, res) => {
-  db.prepare('UPDATE products SET active = 0, updated_at = datetime(\'now\') WHERE id = ?').run(req.params.id);
+  db.prepare('UPDATE products SET active = 0, updated_at = datetime(\'now\', \'+2 hours\') WHERE id = ?').run(req.params.id);
   res.redirect('/inventory');
 });
 

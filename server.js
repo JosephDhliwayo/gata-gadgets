@@ -9,6 +9,7 @@ const { getEcocashBalance } = require('./lib/ecocash');
 const { getCourierBalance } = require('./lib/courier');
 const { getPeriodFinancials, getProfitLossSeries } = require('./lib/analytics');
 const { formatDate, formatDateTime, formatTime, formatMonth } = require('./lib/format');
+const { nowHarare } = require('./lib/time');
 
 const authRoutes = require('./routes/auth');
 const inventoryRoutes = require('./routes/inventory');
@@ -108,7 +109,7 @@ app.get('/', requireLogin, (req, res) => {
     // Cashiers only work within New Receipt, Returns, Chat, and Announcements — no dashboard.
     return res.redirect('/receipts/new');
   }
-  const today = new Date().toISOString().slice(0, 10);
+  const today = nowHarare().toISOString().slice(0, 10);
   const monthStart = today.slice(0, 7) + '-01';
   const weekStart = (() => {
     const dt = new Date(`${today}T00:00:00Z`);

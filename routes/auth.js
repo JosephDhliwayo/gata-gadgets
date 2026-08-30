@@ -6,7 +6,7 @@ const { notifyAdmins } = require('../lib/push');
 const router = express.Router();
 
 function recordLoginEvent(userId, event) {
-  db.prepare('INSERT INTO login_events (user_id, event) VALUES (?, ?)').run(userId, event);
+  db.prepare(`INSERT INTO login_events (user_id, event, created_at) VALUES (?, ?, datetime('now', '+2 hours'))`).run(userId, event);
 }
 
 router.get('/login', (req, res) => {

@@ -15,7 +15,7 @@ router.get('/', (req, res) => {
   `).all(req.session.user.id);
 
   const markRead = db.prepare(`
-    INSERT OR IGNORE INTO announcement_reads (announcement_id, user_id) VALUES (?, ?)
+    INSERT OR IGNORE INTO announcement_reads (announcement_id, user_id, read_at) VALUES (?, ?, datetime('now', '+2 hours'))
   `);
   const tx = db.transaction(() => {
     for (const a of announcements) markRead.run(a.id, req.session.user.id);
@@ -34,7 +34,7 @@ router.post('/', requireAdmin, (req, res) => {
   if (!title || !body) {
     return res.status(400).render('announcements/form', { title: 'New Announcement', error: 'Title and message are required.', formData: req.body });
   }
-  db.prepare('INSERT INTO announcements (title, body, posted_by) VALUES (?, ?, ?)')
+  db.prepare(`INSERT INTO announcements (title, body, posted_by, created_at) VALUES (?, ?, ?, datetime('now', '+2 hours'))`)
     .run(title.trim(), body.trim(), req.session.user.id);
   res.redirect('/announcements');
 });

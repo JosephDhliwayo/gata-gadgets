@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../db/database');
 const { requireAdmin } = require('../middleware/auth');
 const { getPeriodFinancials } = require('../lib/analytics');
+const { nowHarare } = require('../lib/time');
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -26,7 +27,7 @@ router.get('/', (req, res) => {
     return acc;
   }, { total: 0, active: 0, disabled: 0, admins: 0, cashiers: 0 });
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = nowHarare().toISOString().slice(0, 10);
   const activeToday = db.prepare(`
     SELECT COUNT(DISTINCT user_id) AS c FROM receipts WHERE status = 'completed' AND date(created_at) = date(?)
   `).get(today).c;
@@ -81,7 +82,7 @@ router.post('/', (req, res) => {
   }
   try {
     const hash = bcrypt.hashSync(password, 10);
-    db.prepare('INSERT INTO users (name, email, clock_in_id, password, role) VALUES (?, ?, ?, ?, ?)')
+    db.prepare(`INSERT INTO users (name, email, clock_in_id, password, role, created_at) VALUES (?, ?, ?, ?, ?, datetime('now', '+2 hours'))`)
       .run(name.trim(), email.trim().toLowerCase(), cleanClockInId, hash, role === 'admin' ? 'admin' : 'user');
     res.redirect('/users');
   } catch (err) {

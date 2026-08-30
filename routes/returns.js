@@ -81,7 +81,7 @@ router.post('/', (req, res) => {
   const reason = (req.body.reason || '').trim();
   const tx = db.transaction(() => {
     const info = db.prepare(`
-      INSERT INTO return_requests (receipt_id, requested_by, reason) VALUES (?, ?, ?)
+      INSERT INTO return_requests (receipt_id, requested_by, reason, created_at) VALUES (?, ?, ?, datetime('now', '+2 hours'))
     `).run(receipt.id, req.session.user.id, reason || null);
     const requestId = info.lastInsertRowid;
     const insertItem = db.prepare(`
@@ -157,14 +157,14 @@ router.post('/:id/approve', requireAdmin, (req, res) => {
 
   const tx = db.transaction(() => {
     db.prepare(`
-      UPDATE return_requests SET status = 'approved', reviewed_by = ?, reviewed_at = datetime('now'), review_note = ?
+      UPDATE return_requests SET status = 'approved', reviewed_by = ?, reviewed_at = datetime('now', '+2 hours'), review_note = ?
       WHERE id = ?
     `).run(req.session.user.id, (req.body.review_note || '').trim() || null, request.id);
 
-    const restock = db.prepare(`UPDATE products SET quantity = quantity + ?, updated_at = datetime('now') WHERE id = ?`);
+    const restock = db.prepare(`UPDATE products SET quantity = quantity + ?, updated_at = datetime('now', '+2 hours') WHERE id = ?`);
     const insertAdj = db.prepare(`
-      INSERT INTO stock_adjustments (product_id, type, quantity_change, note, recorded_by)
-      VALUES (?, 'return', ?, ?, ?)
+      INSERT INTO stock_adjustments (product_id, type, quantity_change, note, recorded_by, created_at)
+      VALUES (?, 'return', ?, ?, ?, datetime('now', '+2 hours'))
     `);
     for (const it of items) {
       if (!it.product_id) continue;
@@ -181,7 +181,7 @@ router.post('/:id/reject', requireAdmin, (req, res) => {
   if (!request || request.status !== 'pending') return res.redirect('/returns');
 
   db.prepare(`
-    UPDATE return_requests SET status = 'rejected', reviewed_by = ?, reviewed_at = datetime('now'), review_note = ?
+    UPDATE return_requests SET status = 'rejected', reviewed_by = ?, reviewed_at = datetime('now', '+2 hours'), review_note = ?
     WHERE id = ?
   `).run(req.session.user.id, (req.body.review_note || '').trim() || null, request.id);
 

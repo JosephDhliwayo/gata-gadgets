@@ -2,13 +2,14 @@ const express = require('express');
 const db = require('../db/database');
 const { requireLogin, requireAdmin } = require('../middleware/auth');
 const { notifyAdmins } = require('../lib/push');
+const { nowHarare } = require('../lib/time');
 
 const router = express.Router();
 
 router.use(requireLogin);
 
 function generateReceiptNumber() {
-  const now = new Date();
+  const now = nowHarare();
   const stamp = now.toISOString().replace(/[-:TZ.]/g, '').slice(0, 14);
   const rand = Math.floor(Math.random() * 900 + 100);
   return `GG-${stamp}-${rand}`;
@@ -140,13 +141,13 @@ router.post('/', (req, res) => {
       customerId = existing.id;
       if (cleanName) db.prepare('UPDATE customers SET name = ? WHERE id = ?').run(cleanName, existing.id);
     } else {
-      const info = db.prepare('INSERT INTO customers (name, phone) VALUES (?, ?)').run(cleanName || 'Walk-in Customer', cleanPhone);
+      const info = db.prepare(`INSERT INTO customers (name, phone, created_at) VALUES (?, ?, datetime('now', '+2 hours'))`).run(cleanName || 'Walk-in Customer', cleanPhone);
       customerId = info.lastInsertRowid;
     }
 
     const info = db.prepare(`
-      INSERT INTO receipts (receipt_number, user_id, customer_id, customer_name, customer_phone, subtotal, total, payment_method, cash_received, change_due, receivable_status, courier_destination)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO receipts (receipt_number, user_id, customer_id, customer_name, customer_phone, subtotal, total, payment_method, cash_received, change_due, receivable_status, courier_destination, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', '+2 hours'))
     `).run(
       receiptNumber, req.session.user.id, customerId,
       cleanName, cleanPhone,
@@ -158,7 +159,7 @@ router.post('/', (req, res) => {
       INSERT INTO receipt_items (receipt_id, product_id, product_name, quantity, unit_price, unit_cost, line_total)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
-    const decrementStock = db.prepare(`UPDATE products SET quantity = quantity - ?, updated_at = datetime('now') WHERE id = ?`);
+    const decrementStock = db.prepare(`UPDATE products SET quantity = quantity - ?, updated_at = datetime('now', '+2 hours') WHERE id = ?`);
 
     for (const it of items) {
       insertItem.run(receiptId, it.product_id, it.product_name, it.quantity, it.unit_price, it.unit_cost, it.line_total);
@@ -170,8 +171,8 @@ router.post('/', (req, res) => {
     let discountRequestId = null;
     if (discountAmount > 0 && req.session.user.role !== 'admin') {
       const discountInfo = db.prepare(`
-        INSERT INTO discount_requests (receipt_id, requested_by, discount_amount, details)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO discount_requests (receipt_id, requested_by, discount_amount, details, created_at)
+        VALUES (?, ?, ?, ?, datetime('now', '+2 hours'))
       `).run(receiptId, req.session.user.id, discountAmount, discountLines.join('\n'));
       discountRequestId = discountInfo.lastInsertRowid;
     }
@@ -246,10 +247,10 @@ router.post('/:id/void', requireAdmin, (req, res) => {
 
   const tx = db.transaction(() => {
     db.prepare(`UPDATE receipts SET status = 'void' WHERE id = ?`).run(receipt.id);
-    const restock = db.prepare(`UPDATE products SET quantity = quantity + ?, updated_at = datetime('now') WHERE id = ?`);
+    const restock = db.prepare(`UPDATE products SET quantity = quantity + ?, updated_at = datetime('now', '+2 hours') WHERE id = ?`);
     const insertAdj = db.prepare(`
-      INSERT INTO stock_adjustments (product_id, type, quantity_change, note, recorded_by)
-      VALUES (?, 'return', ?, ?, ?)
+      INSERT INTO stock_adjustments (product_id, type, quantity_change, note, recorded_by, created_at)
+      VALUES (?, 'return', ?, ?, ?, datetime('now', '+2 hours'))
     `);
     for (const it of items) {
       if (!it.product_id) continue;

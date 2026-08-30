@@ -20,7 +20,7 @@ router.post('/', (req, res) => {
   }
 
   db.prepare(`
-    INSERT INTO leave_requests (user_id, start_date, end_date, reason) VALUES (?, ?, ?, ?)
+    INSERT INTO leave_requests (user_id, start_date, end_date, reason, created_at) VALUES (?, ?, ?, ?, datetime('now', '+2 hours'))
   `).run(req.session.user.id, start_date, end_date, (reason || '').trim() || null);
 
   res.redirect('/leave');
@@ -59,7 +59,7 @@ router.post('/:id/approve', requireAdmin, (req, res) => {
   if (!request || request.status !== 'pending') return res.redirect('/leave');
 
   db.prepare(`
-    UPDATE leave_requests SET status = 'approved', reviewed_by = ?, reviewed_at = datetime('now'), review_note = ?
+    UPDATE leave_requests SET status = 'approved', reviewed_by = ?, reviewed_at = datetime('now', '+2 hours'), review_note = ?
     WHERE id = ?
   `).run(req.session.user.id, (req.body.review_note || '').trim() || null, request.id);
 
@@ -71,7 +71,7 @@ router.post('/:id/reject', requireAdmin, (req, res) => {
   if (!request || request.status !== 'pending') return res.redirect('/leave');
 
   db.prepare(`
-    UPDATE leave_requests SET status = 'rejected', reviewed_by = ?, reviewed_at = datetime('now'), review_note = ?
+    UPDATE leave_requests SET status = 'rejected', reviewed_by = ?, reviewed_at = datetime('now', '+2 hours'), review_note = ?
     WHERE id = ?
   `).run(req.session.user.id, (req.body.review_note || '').trim() || null, request.id);
 

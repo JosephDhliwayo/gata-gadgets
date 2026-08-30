@@ -24,8 +24,8 @@ router.post('/', (req, res) => {
     return res.status(400).render('expenses/form', { title: 'Add Expense', error: 'Description, amount and date are required.', expense: req.body });
   }
   db.prepare(`
-    INSERT INTO expenses (description, category, amount, expense_date, recorded_by)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO expenses (description, category, amount, expense_date, recorded_by, created_at)
+    VALUES (?, ?, ?, ?, ?, datetime('now', '+2 hours'))
   `).run(description.trim(), (category || 'General').trim(), parseFloat(amount) || 0, expense_date, req.session.user.id);
   res.redirect('/expenses');
 });

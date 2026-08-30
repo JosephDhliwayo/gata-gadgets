@@ -45,7 +45,7 @@ router.post('/', (req, res) => {
   }
 
   db.prepare(`
-    INSERT INTO ecocash_withdrawals (amount, note, withdrawn_by) VALUES (?, ?, ?)
+    INSERT INTO ecocash_withdrawals (amount, note, withdrawn_by, created_at) VALUES (?, ?, ?, datetime('now', '+2 hours'))
   `).run(amount, note, req.session.user.id);
 
   res.redirect('/ecocash?success=' + encodeURIComponent(`$${amount.toFixed(2)} withdrawal recorded.`));

@@ -15,7 +15,7 @@ function renderThread(req, res, otherUserId) {
   if (!otherUser) return res.status(404).render('errors/404', { title: 'Not Found' });
 
   db.prepare(`
-    UPDATE chat_messages SET read_at = datetime('now')
+    UPDATE chat_messages SET read_at = datetime('now', '+2 hours')
     WHERE sender_id = ? AND recipient_id = ? AND read_at IS NULL
   `).run(otherUserId, meId);
 
@@ -67,7 +67,7 @@ router.post('/:userId', (req, res) => {
   const body = (req.body.body || '').trim();
   if (body) {
     db.prepare(`
-      INSERT INTO chat_messages (sender_id, recipient_id, body) VALUES (?, ?, ?)
+      INSERT INTO chat_messages (sender_id, recipient_id, body, created_at) VALUES (?, ?, ?, datetime('now', '+2 hours'))
     `).run(meId, otherUserId, body.slice(0, 2000));
   }
 
@@ -81,7 +81,7 @@ router.get('/:userId/messages', (req, res) => {
   const afterId = parseInt(req.query.after, 10) || 0;
 
   db.prepare(`
-    UPDATE chat_messages SET read_at = datetime('now')
+    UPDATE chat_messages SET read_at = datetime('now', '+2 hours')
     WHERE sender_id = ? AND recipient_id = ? AND read_at IS NULL
   `).run(otherUserId, meId);
 

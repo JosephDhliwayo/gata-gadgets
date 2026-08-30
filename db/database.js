@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
   role TEXT NOT NULL CHECK(role IN ('admin','user')),
   active INTEGER NOT NULL DEFAULT 1,
   commission_rate REAL NOT NULL DEFAULT 0,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours'))
 );
 
 CREATE TABLE IF NOT EXISTS products (
@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS products (
   quantity INTEGER NOT NULL DEFAULT 0,
   reorder_level INTEGER NOT NULL DEFAULT 5,
   active INTEGER NOT NULL DEFAULT 1,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours'))
 );
 
 CREATE TABLE IF NOT EXISTS receipts (
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS receipts (
   cleared_by INTEGER REFERENCES users(id),
   courier_destination TEXT,
   status TEXT NOT NULL DEFAULT 'completed' CHECK(status IN ('completed','void')),
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours'))
 );
 
 CREATE TABLE IF NOT EXISTS receipt_items (
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS stock_adjustments (
   quantity_change INTEGER NOT NULL,
   note TEXT,
   recorded_by INTEGER NOT NULL REFERENCES users(id),
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours'))
 );
 
 CREATE TABLE IF NOT EXISTS return_requests (
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS return_requests (
   reviewed_by INTEGER REFERENCES users(id),
   reviewed_at TEXT,
   review_note TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours'))
 );
 
 CREATE TABLE IF NOT EXISTS return_request_items (
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS expenses (
   amount REAL NOT NULL,
   expense_date TEXT NOT NULL,
   recorded_by INTEGER NOT NULL REFERENCES users(id),
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours'))
 );
 
 CREATE TABLE IF NOT EXISTS customers (
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS customers (
   name TEXT NOT NULL,
   phone TEXT UNIQUE,
   email TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours'))
 );
 
 CREATE TABLE IF NOT EXISTS chat_messages (
@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS chat_messages (
   sender_id INTEGER NOT NULL REFERENCES users(id),
   recipient_id INTEGER NOT NULL REFERENCES users(id),
   body TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours')),
   read_at TEXT
 );
 
@@ -131,13 +131,13 @@ CREATE TABLE IF NOT EXISTS announcements (
   title TEXT NOT NULL,
   body TEXT NOT NULL,
   posted_by INTEGER NOT NULL REFERENCES users(id),
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours'))
 );
 
 CREATE TABLE IF NOT EXISTS announcement_reads (
   announcement_id INTEGER NOT NULL REFERENCES announcements(id),
   user_id INTEGER NOT NULL REFERENCES users(id),
-  read_at TEXT NOT NULL DEFAULT (datetime('now')),
+  read_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours')),
   PRIMARY KEY (announcement_id, user_id)
 );
 
@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS login_events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL REFERENCES users(id),
   event TEXT NOT NULL CHECK(event IN ('login','logout')),
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours'))
 );
 
 CREATE TABLE IF NOT EXISTS push_subscriptions (
@@ -154,7 +154,7 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
   endpoint TEXT NOT NULL UNIQUE,
   p256dh TEXT NOT NULL,
   auth TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours'))
 );
 
 CREATE TABLE IF NOT EXISTS ecocash_withdrawals (
@@ -162,7 +162,7 @@ CREATE TABLE IF NOT EXISTS ecocash_withdrawals (
   amount REAL NOT NULL,
   note TEXT,
   withdrawn_by INTEGER NOT NULL REFERENCES users(id),
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours'))
 );
 
 CREATE TABLE IF NOT EXISTS courier_collections (
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS courier_collections (
   amount REAL NOT NULL,
   note TEXT,
   collected_by INTEGER NOT NULL REFERENCES users(id),
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours'))
 );
 
 CREATE TABLE IF NOT EXISTS leave_requests (
@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS leave_requests (
   reviewed_by INTEGER REFERENCES users(id),
   reviewed_at TEXT,
   review_note TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours'))
 );
 
 CREATE TABLE IF NOT EXISTS discount_requests (
@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS discount_requests (
   reviewed_by INTEGER REFERENCES users(id),
   reviewed_at TEXT,
   review_note TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours'))
 );
 `);
 
@@ -255,7 +255,7 @@ if (chatColumns.includes('conversation_user_id')) {
       sender_id INTEGER NOT NULL REFERENCES users(id),
       recipient_id INTEGER NOT NULL REFERENCES users(id),
       body TEXT NOT NULL,
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours')),
       read_at TEXT
     );
   `);

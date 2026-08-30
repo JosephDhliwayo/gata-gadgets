@@ -45,7 +45,7 @@ router.post('/', (req, res) => {
   }
 
   db.prepare(`
-    INSERT INTO courier_collections (amount, note, collected_by) VALUES (?, ?, ?)
+    INSERT INTO courier_collections (amount, note, collected_by, created_at) VALUES (?, ?, ?, datetime('now', '+2 hours'))
   `).run(amount, note, req.session.user.id);
 
   res.redirect('/courier?success=' + encodeURIComponent(`$${amount.toFixed(2)} collection recorded.`));
