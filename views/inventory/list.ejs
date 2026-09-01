@@ -4,7 +4,7 @@
     <h1>Inventory</h1>
     <p class="subtitle">Manage products, pricing and stock levels.</p>
   </div>
-  <a class="btn" href="/inventory/new">+ Add Product</a>
+  <a class="btn" href="/inventory/new<%= q ? '?q=' + encodeURIComponent(q) : '' %>">+ Add Product</a>
 </div>
 
 <div class="card">
@@ -43,12 +43,14 @@
           <td class="num"><%= p.reorder_level %></td>
           <td>
             <div class="actions-row" style="margin-top:0;">
-              <a class="btn small outline" href="/inventory/<%= p.id %>/edit">Edit</a>
+              <a class="btn small outline" href="/inventory/<%= p.id %>/edit<%= q ? '?q=' + encodeURIComponent(q) : '' %>">Edit</a>
               <form method="POST" action="/inventory/<%= p.id %>/restock" style="display:flex; gap:4px;">
+                <input type="hidden" name="q" value="<%= q %>">
                 <input type="number" name="quantity_change" placeholder="+/- qty" style="width:90px;" required>
                 <button class="btn small secondary" type="submit">Adjust</button>
               </form>
               <form method="POST" action="/inventory/<%= p.id %>/delete" onsubmit="return confirm('Remove this product from active inventory?');">
+                <input type="hidden" name="q" value="<%= q %>">
                 <button class="btn small danger" type="submit">Remove</button>
               </form>
             </div>

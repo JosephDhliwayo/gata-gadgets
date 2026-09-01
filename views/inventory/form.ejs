@@ -6,6 +6,7 @@
 <div class="card" style="max-width:640px;">
   <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
   <form method="POST" action="<%= product && product.id ? '/inventory/' + product.id : '/inventory' %>">
+    <input type="hidden" name="q" value="<%= q || '' %>">
     <div class="form-row">
       <div class="field">
         <label for="sku">SKU</label>
@@ -47,7 +48,7 @@
     </div>
     <div class="actions-row">
       <button class="btn" type="submit">Save Product</button>
-      <a class="btn outline" href="/inventory">Cancel</a>
+      <a class="btn outline" href="<%= q ? '/inventory?q=' + encodeURIComponent(q) : '/inventory' %>">Cancel</a>
     </div>
   </form>
 </div>

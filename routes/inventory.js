@@ -28,14 +28,21 @@ router.get('/', (req, res) => {
   res.render('inventory/list', { title: 'Inventory', products, q });
 });
 
+// Appends the given search term (if any) as a ?q= query string, so admin actions taken from a
+// filtered inventory view (edit, restock, remove) return to that same filtered view afterward.
+function inventoryUrl(q) {
+  return q ? `/inventory?q=${encodeURIComponent(q)}` : '/inventory';
+}
+
 router.get('/new', (req, res) => {
-  res.render('inventory/form', { title: 'Add Product', product: null, error: null, categories: getCategories() });
+  const q = (req.query.q || '').trim();
+  res.render('inventory/form', { title: 'Add Product', product: null, error: null, categories: getCategories(), q });
 });
 
 router.post('/', (req, res) => {
-  const { sku, name, category, cost_price, selling_price, quantity, reorder_level } = req.body;
+  const { sku, name, category, cost_price, selling_price, quantity, reorder_level, q } = req.body;
   if (!sku || !name) {
-    return res.status(400).render('inventory/form', { title: 'Add Product', product: req.body, error: 'SKU and Name are required.', categories: getCategories() });
+    return res.status(400).render('inventory/form', { title: 'Add Product', product: req.body, error: 'SKU and Name are required.', categories: getCategories(), q });
   }
   try {
     const info = db.prepare(`
@@ -57,24 +64,25 @@ router.post('/', (req, res) => {
         VALUES (?, 'restock', ?, 'Initial stock on creation', ?, datetime('now', '+2 hours'))
       `).run(info.lastInsertRowid, qty, req.session.user.id);
     }
-    res.redirect('/inventory');
+    res.redirect(inventoryUrl(q));
   } catch (err) {
     const msg = String(err.message || '').includes('UNIQUE') ? 'A product with that SKU already exists.' : 'Could not save product.';
-    res.status(400).render('inventory/form', { title: 'Add Product', product: req.body, error: msg, categories: getCategories() });
+    res.status(400).render('inventory/form', { title: 'Add Product', product: req.body, error: msg, categories: getCategories(), q });
   }
 });
 
 router.get('/:id/edit', (req, res) => {
+  const q = (req.query.q || '').trim();
   const product = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
   if (!product) return res.status(404).render('errors/404', { title: 'Not Found' });
-  res.render('inventory/form', { title: 'Edit Product', product, error: null, categories: getCategories() });
+  res.render('inventory/form', { title: 'Edit Product', product, error: null, categories: getCategories(), q });
 });
 
 router.post('/:id', (req, res) => {
-  const { sku, name, category, cost_price, selling_price, reorder_level } = req.body;
+  const { sku, name, category, cost_price, selling_price, reorder_level, q } = req.body;
   if (!sku || !name) {
     const product = { ...req.body, id: req.params.id };
-    return res.status(400).render('inventory/form', { title: 'Edit Product', product, error: 'SKU and Name are required.', categories: getCategories() });
+    return res.status(400).render('inventory/form', { title: 'Edit Product', product, error: 'SKU and Name are required.', categories: getCategories(), q });
   }
   try {
     db.prepare(`
@@ -89,19 +97,20 @@ router.post('/:id', (req, res) => {
       parseInt(reorder_level, 10) || 5,
       req.params.id
     );
-    res.redirect('/inventory');
+    res.redirect(inventoryUrl(q));
   } catch (err) {
     const msg = String(err.message || '').includes('UNIQUE') ? 'A product with that SKU already exists.' : 'Could not update product.';
     const product = { ...req.body, id: req.params.id };
-    res.status(400).render('inventory/form', { title: 'Edit Product', product, error: msg, categories: getCategories() });
+    res.status(400).render('inventory/form', { title: 'Edit Product', product, error: msg, categories: getCategories(), q });
   }
 });
 
 router.post('/:id/restock', (req, res) => {
   const qty = parseInt(req.body.quantity_change, 10);
   const note = (req.body.note || '').trim();
+  const q = (req.body.q || '').trim();
   const product = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
-  if (!product || !qty) return res.redirect('/inventory');
+  if (!product || !qty) return res.redirect(inventoryUrl(q));
 
   const type = qty < 0 ? 'correction' : 'restock';
   const tx = db.transaction(() => {
@@ -112,12 +121,13 @@ router.post('/:id/restock', (req, res) => {
     `).run(product.id, type, qty, note || null, req.session.user.id);
   });
   tx();
-  res.redirect('/inventory');
+  res.redirect(inventoryUrl(q));
 });
 
 router.post('/:id/delete', (req, res) => {
+  const q = (req.body.q || '').trim();
   db.prepare('UPDATE products SET active = 0, updated_at = datetime(\'now\', \'+2 hours\') WHERE id = ?').run(req.params.id);
-  res.redirect('/inventory');
+  res.redirect(inventoryUrl(q));
 });
 
 module.exports = router;
