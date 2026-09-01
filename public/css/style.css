@@ -336,6 +336,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--purple); ou
   margin-bottom: 8px;
 }
 .chat-list-item:hover { background: #f8fafc; text-decoration: none; }
+/* min-width:0 lets this flex item shrink below its nowrap text's natural width — without it,
+   a long last-message preview forces the whole row (and page) to scroll horizontally on mobile. */
+.chat-list-item > div:first-child { min-width: 0; flex: 1; }
 .chat-list-item .chat-preview { color: var(--text-muted); font-size: 0.85rem; margin-top: 2px; max-width: 480px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .chat-thread {
@@ -444,6 +447,20 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--purple); ou
 .catalog-price-display { background: var(--bg); color: var(--text-muted); }
 .payment-row { display: grid; grid-template-columns: 2fr 140px 36px; gap: 8px; align-items: end; margin-bottom: 10px; }
 @media (max-width: 700px) { .payment-row { grid-template-columns: 1fr; } }
+
+/* Row labels: on wide screens the item grid uses one shared header row above it, and the
+   payment grid labels only its first row (a mini-header). Once either grid collapses to a
+   single column on mobile, those detached labels no longer line up with their fields, so each
+   row gets its own inline labels instead — hidden on desktop, shown once stacked. */
+.row-label { display: none; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 2px; }
+.payment-row:first-child .row-label { display: block; }
+@media (max-width: 900px) {
+  .line-item-header { display: none; }
+  .line-item-row .row-label { display: block; }
+}
+@media (max-width: 700px) {
+  .payment-row .row-label { display: block; }
+}
 .muted { color: var(--text-muted); }
 .text-right { text-align: right; }
 .mt-0 { margin-top: 0; }
