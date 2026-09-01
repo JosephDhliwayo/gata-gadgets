@@ -43,12 +43,17 @@ router.get('/', (req, res) => {
 
   const topPerformers = [...users]
     .filter(u => u.receipt_count > 0)
-    .map(u => ({
-      ...u,
-      todayProfit: getPeriodFinancials(db, today, today, u.id).profit,
-      weekProfit: getPeriodFinancials(db, weekStart, today, u.id).profit,
-      monthProfit: getPeriodFinancials(db, monthStart, today, u.id).profit
-    }))
+    .map(u => {
+      const todayFinancials = getPeriodFinancials(db, today, today, u.id);
+      const weekFinancials = getPeriodFinancials(db, weekStart, today, u.id);
+      const monthFinancials = getPeriodFinancials(db, monthStart, today, u.id);
+      return {
+        ...u,
+        todaySales: todayFinancials.sales, todayProfit: todayFinancials.profit,
+        weekSales: weekFinancials.sales, weekProfit: weekFinancials.profit,
+        monthSales: monthFinancials.sales, monthProfit: monthFinancials.profit
+      };
+    })
     .sort((a, b) => b.monthProfit - a.monthProfit)
     .slice(0, 5);
 
