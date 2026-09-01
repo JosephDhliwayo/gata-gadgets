@@ -48,7 +48,7 @@
   <div class="card">
     <h3 class="mt-0">Items</h3>
     <p class="muted" style="margin-top:-6px;">Search by product name or SKU. To give a negotiated price, enter a Discount amount — the catalog price itself is fixed.</p>
-    <div class="line-item-row muted" style="font-size:0.78rem; text-transform:uppercase; font-weight:600;">
+    <div class="line-item-row line-item-header muted" style="font-size:0.78rem; text-transform:uppercase; font-weight:600;">
       <div>Product</div><div>Qty</div><div>Catalog Price</div><div>Discount</div><div>Line Total</div><div></div>
     </div>
     <div id="line-items">
@@ -58,14 +58,15 @@
         <% const discountValue = (prod && line.unit_price !== undefined && line.unit_price !== '') ? Math.max(0, Math.round((prod.selling_price - parseFloat(line.unit_price)) * 100) / 100) : ''; %>
         <div class="line-item-row">
           <div>
+            <label class="row-label">Product</label>
             <input type="text" class="product-search" list="products-datalist" placeholder="Search product..." autocomplete="off" required value="<%= prod ? `${prod.name} (${prod.sku})` : '' %>">
             <input type="hidden" name="product_id" class="product-id-input" value="<%= line.product_id || '' %>">
             <div class="product-hint muted" style="font-size:0.75rem; margin-top:2px;"><%= prod ? `${prod.quantity} in stock` : '' %></div>
           </div>
-          <div><input type="number" name="quantity" class="qty-input" min="1" value="<%= line.quantity || 1 %>" <%= prod ? `max="${prod.quantity}"` : '' %> required></div>
-          <div><input type="text" class="catalog-price-display" readonly value="<%= prod ? `$${prod.selling_price.toFixed(2)}` : '' %>" placeholder="-"></div>
-          <div><input type="number" class="discount-input" step="0.01" min="0" placeholder="0.00" value="<%= discountValue %>" <%= prod ? `max="${prod.selling_price}"` : 'disabled' %>></div>
-          <div class="line-total">-</div>
+          <div><label class="row-label">Qty</label><input type="number" name="quantity" class="qty-input" min="1" value="<%= line.quantity || 1 %>" <%= prod ? `max="${prod.quantity}"` : '' %> required></div>
+          <div><label class="row-label">Catalog Price</label><input type="text" class="catalog-price-display" readonly value="<%= prod ? `$${prod.selling_price.toFixed(2)}` : '' %>" placeholder="-"></div>
+          <div><label class="row-label">Discount</label><input type="number" class="discount-input" step="0.01" min="0" placeholder="0.00" value="<%= discountValue %>" <%= prod ? `max="${prod.selling_price}"` : 'disabled' %>></div>
+          <div><label class="row-label">Line Total</label><div class="line-total">-</div></div>
           <div><button type="button" class="btn small outline remove-line-btn">&times;</button></div>
           <input type="hidden" name="unit_price" class="price-input" value="<%= line.unit_price || '' %>">
         </div>
@@ -76,14 +77,15 @@
     <template id="line-item-template">
       <div class="line-item-row">
         <div>
+          <label class="row-label">Product</label>
           <input type="text" class="product-search" list="products-datalist" placeholder="Search product..." autocomplete="off" required>
           <input type="hidden" name="product_id" class="product-id-input">
           <div class="product-hint muted" style="font-size:0.75rem; margin-top:2px;"></div>
         </div>
-        <div><input type="number" name="quantity" class="qty-input" min="1" value="1" required></div>
-        <div><input type="text" class="catalog-price-display" readonly placeholder="-"></div>
-        <div><input type="number" class="discount-input" step="0.01" min="0" placeholder="0.00" disabled></div>
-        <div class="line-total">-</div>
+        <div><label class="row-label">Qty</label><input type="number" name="quantity" class="qty-input" min="1" value="1" required></div>
+        <div><label class="row-label">Catalog Price</label><input type="text" class="catalog-price-display" readonly placeholder="-"></div>
+        <div><label class="row-label">Discount</label><input type="number" class="discount-input" step="0.01" min="0" placeholder="0.00" disabled></div>
+        <div><label class="row-label">Line Total</label><div class="line-total">-</div></div>
         <div><button type="button" class="btn small outline remove-line-btn">&times;</button></div>
         <input type="hidden" name="unit_price" class="price-input">
       </div>
@@ -110,7 +112,7 @@
         <% initialPayments.forEach((p, i) => { %>
           <div class="payment-row">
             <div>
-              <% if (i === 0) { %><label style="font-size:0.75rem;">Method</label><% } %>
+              <label class="row-label">Method</label>
               <select name="payment_method" class="payment-method-select">
                 <% paymentMethodOptions.forEach(([val, label]) => { %>
                   <option value="<%= val %>" <%= p.payment_method === val ? 'selected' : '' %>><%= label %></option>
@@ -118,7 +120,7 @@
               </select>
             </div>
             <div>
-              <% if (i === 0) { %><label style="font-size:0.75rem;">Amount</label><% } %>
+              <label class="row-label">Amount</label>
               <input type="number" name="payment_amount" class="payment-amount-input" step="0.01" min="0" placeholder="0.00" value="<%= p.amount || '' %>">
             </div>
             <div><button type="button" class="btn small outline remove-payment-btn">&times;</button></div>
@@ -139,6 +141,7 @@
     <template id="payment-row-template">
       <div class="payment-row">
         <div>
+          <label class="row-label">Method</label>
           <select name="payment_method" class="payment-method-select">
             <option value="cash">Cash</option>
             <option value="bank_transfer">Bank Transfer</option>
@@ -147,6 +150,7 @@
           </select>
         </div>
         <div>
+          <label class="row-label">Amount</label>
           <input type="number" name="payment_amount" class="payment-amount-input" step="0.01" min="0" placeholder="0.00">
         </div>
         <div><button type="button" class="btn small outline remove-payment-btn">&times;</button></div>
