@@ -24,7 +24,7 @@
   <% if (discountRequest.status === 'pending') { %>
     <div class="alert alert-warning no-print">A $<%= discountRequest.discount_amount.toFixed(2) %> discount on this sale is <strong>pending admin approval</strong>.</div>
   <% } else if (discountRequest.status === 'approved') { %>
-    <div class="alert alert-success no-print">A $<%= discountRequest.discount_amount.toFixed(2) %> discount on this sale was approved by <%= discountRequest.reviewed_by_name %> on <%= formatDateTime(discountRequest.reviewed_at) %>.</div>
+    <div class="alert alert-success no-print">A $<%= discountRequest.discount_amount.toFixed(2) %> discount on this sale was applied by <%= discountRequest.reviewed_by_name %> on <%= formatDateTime(discountRequest.reviewed_at) %>.</div>
   <% } else { %>
     <div class="alert alert-error no-print">A $<%= discountRequest.discount_amount.toFixed(2) %> discount on this sale was rejected by <%= discountRequest.reviewed_by_name %> on <%= formatDateTime(discountRequest.reviewed_at) %>.</div>
   <% } %>

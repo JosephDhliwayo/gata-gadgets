@@ -1,7 +1,6 @@
 const express = require('express');
 const db = require('../db/database');
 const { requireLogin, requireAdmin } = require('../middleware/auth');
-const { notifyAdmins } = require('../lib/push');
 const { nowHarare } = require('../lib/time');
 
 const router = express.Router();
@@ -166,28 +165,20 @@ router.post('/', (req, res) => {
       decrementStock.run(it.quantity, it.product_id);
     }
 
-    // A cashier selling below catalog price creates a pending discount for admin to review.
-    // Admin's own price overrides don't need self-approval.
-    let discountRequestId = null;
-    if (discountAmount > 0 && req.session.user.role !== 'admin') {
-      const discountInfo = db.prepare(`
-        INSERT INTO discount_requests (receipt_id, requested_by, discount_amount, details, created_at)
-        VALUES (?, ?, ?, ?, datetime('now', '+2 hours'))
-      `).run(receiptId, req.session.user.id, discountAmount, discountLines.join('\n'));
-      discountRequestId = discountInfo.lastInsertRowid;
+    // Any user — cashier or admin — has authority to give a discount directly at the point of
+    // sale, no separate approval step. Still recorded (already approved) for the discount
+    // audit trail and Sales Report total.
+    if (discountAmount > 0) {
+      db.prepare(`
+        INSERT INTO discount_requests (receipt_id, requested_by, discount_amount, details, status, reviewed_by, reviewed_at, created_at)
+        VALUES (?, ?, ?, ?, 'approved', ?, datetime('now', '+2 hours'), datetime('now', '+2 hours'))
+      `).run(receiptId, req.session.user.id, discountAmount, discountLines.join('\n'), req.session.user.id);
     }
 
-    return { receiptId, discountRequestId };
+    return { receiptId };
   });
 
-  const { receiptId, discountRequestId } = tx();
-
-  if (discountRequestId) {
-    notifyAdmins({
-      title: 'GATA GADGETS',
-      body: `${req.session.user.name} gave a $${discountAmount.toFixed(2)} discount on receipt ${receiptNumber} — needs approval.`
-    }).catch(() => {});
-  }
+  const { receiptId } = tx();
 
   res.redirect(`/receipts/${receiptId}`);
 });
