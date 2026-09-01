@@ -43,8 +43,58 @@
         <div id="loyalty-hint" class="muted" style="font-size:0.8rem; margin-top:4px; display:none;"></div>
       </div>
     </div>
+  </div>
 
-    <div class="field" style="margin-top:16px;">
+  <div class="card">
+    <h3 class="mt-0">Items</h3>
+    <p class="muted" style="margin-top:-6px;">Search by product name or SKU. Unit price defaults to the catalog price but can be edited for a negotiated sale.</p>
+    <div class="line-item-row muted" style="font-size:0.78rem; text-transform:uppercase; font-weight:600;">
+      <div>Product</div><div>Qty</div><div>Unit Price</div><div>Line Total</div><div></div>
+    </div>
+    <div id="line-items">
+      <% const initialLines = (lines && lines.length > 0) ? lines : [{}]; %>
+      <% initialLines.forEach(line => { %>
+        <% const prod = line.product_id ? products.find(p => String(p.id) === String(line.product_id)) : null; %>
+        <div class="line-item-row">
+          <div>
+            <input type="text" class="product-search" list="products-datalist" placeholder="Search product..." autocomplete="off" required value="<%= prod ? `${prod.name} (${prod.sku})` : '' %>">
+            <input type="hidden" name="product_id" class="product-id-input" value="<%= line.product_id || '' %>">
+            <div class="product-hint muted" style="font-size:0.75rem; margin-top:2px;"><%= prod ? `$${prod.selling_price.toFixed(2)} catalog price · ${prod.quantity} in stock` : '' %></div>
+          </div>
+          <div><input type="number" name="quantity" class="qty-input" min="1" value="<%= line.quantity || 1 %>" <%= prod ? `max="${prod.quantity}"` : '' %> required></div>
+          <div><input type="number" name="unit_price" class="price-input" step="0.01" min="0" value="<%= line.unit_price || '' %>" <%= prod ? '' : 'disabled' %>></div>
+          <div class="line-total">-</div>
+          <div><button type="button" class="btn small outline remove-line-btn">&times;</button></div>
+        </div>
+      <% }) %>
+    </div>
+    <button type="button" class="btn small secondary" id="add-line-btn">+ Add Item</button>
+
+    <template id="line-item-template">
+      <div class="line-item-row">
+        <div>
+          <input type="text" class="product-search" list="products-datalist" placeholder="Search product..." autocomplete="off" required>
+          <input type="hidden" name="product_id" class="product-id-input">
+          <div class="product-hint muted" style="font-size:0.75rem; margin-top:2px;"></div>
+        </div>
+        <div><input type="number" name="quantity" class="qty-input" min="1" value="1" required></div>
+        <div><input type="number" name="unit_price" class="price-input" step="0.01" min="0" disabled></div>
+        <div class="line-total">-</div>
+        <div><button type="button" class="btn small outline remove-line-btn">&times;</button></div>
+      </div>
+    </template>
+
+    <div style="max-width:280px; margin-left:auto; margin-top:20px;">
+      <table class="totals">
+        <tr><td>Subtotal</td><td class="text-right" id="subtotal-display">$0.00</td></tr>
+        <tr><td class="grand">Total</td><td class="text-right grand" id="total-display">$0.00</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="mt-0">Payment</h3>
+    <div class="field">
       <label>Payment Method(s)</label>
       <p class="muted" style="margin:2px 0 8px; font-size:0.8rem;">A customer can split one sale across two or more payment methods — just add another row and enter each portion.</p>
       <div id="payment-rows">
@@ -97,54 +147,9 @@
         <div><button type="button" class="btn small outline remove-payment-btn">&times;</button></div>
       </div>
     </template>
-  </div>
 
-  <div class="card">
-    <h3 class="mt-0">Items</h3>
-    <p class="muted" style="margin-top:-6px;">Search by product name or SKU. Unit price defaults to the catalog price but can be edited for a negotiated sale.</p>
-    <div class="line-item-row muted" style="font-size:0.78rem; text-transform:uppercase; font-weight:600;">
-      <div>Product</div><div>Qty</div><div>Unit Price</div><div>Line Total</div><div></div>
-    </div>
-    <div id="line-items">
-      <% const initialLines = (lines && lines.length > 0) ? lines : [{}]; %>
-      <% initialLines.forEach(line => { %>
-        <% const prod = line.product_id ? products.find(p => String(p.id) === String(line.product_id)) : null; %>
-        <div class="line-item-row">
-          <div>
-            <input type="text" class="product-search" list="products-datalist" placeholder="Search product..." autocomplete="off" required value="<%= prod ? `${prod.name} (${prod.sku})` : '' %>">
-            <input type="hidden" name="product_id" class="product-id-input" value="<%= line.product_id || '' %>">
-            <div class="product-hint muted" style="font-size:0.75rem; margin-top:2px;"><%= prod ? `$${prod.selling_price.toFixed(2)} catalog price · ${prod.quantity} in stock` : '' %></div>
-          </div>
-          <div><input type="number" name="quantity" class="qty-input" min="1" value="<%= line.quantity || 1 %>" <%= prod ? `max="${prod.quantity}"` : '' %> required></div>
-          <div><input type="number" name="unit_price" class="price-input" step="0.01" min="0" value="<%= line.unit_price || '' %>" <%= prod ? '' : 'disabled' %>></div>
-          <div class="line-total">-</div>
-          <div><button type="button" class="btn small outline remove-line-btn">&times;</button></div>
-        </div>
-      <% }) %>
-    </div>
-    <button type="button" class="btn small secondary" id="add-line-btn">+ Add Item</button>
-
-    <template id="line-item-template">
-      <div class="line-item-row">
-        <div>
-          <input type="text" class="product-search" list="products-datalist" placeholder="Search product..." autocomplete="off" required>
-          <input type="hidden" name="product_id" class="product-id-input">
-          <div class="product-hint muted" style="font-size:0.75rem; margin-top:2px;"></div>
-        </div>
-        <div><input type="number" name="quantity" class="qty-input" min="1" value="1" required></div>
-        <div><input type="number" name="unit_price" class="price-input" step="0.01" min="0" disabled></div>
-        <div class="line-total">-</div>
-        <div><button type="button" class="btn small outline remove-line-btn">&times;</button></div>
-      </div>
-    </template>
-
-    <div style="max-width:280px; margin-left:auto; margin-top:20px;">
-      <table class="totals">
-        <tr><td>Subtotal</td><td class="text-right" id="subtotal-display">$0.00</td></tr>
-        <tr><td class="grand">Total</td><td class="text-right grand" id="total-display">$0.00</td></tr>
-      </table>
-
-      <div id="cash-fields" class="field" style="margin-top:14px;">
+    <div style="max-width:280px; margin-top:20px;">
+      <div id="cash-fields" class="field">
         <label for="cash_received">Cash Received</label>
         <input type="number" id="cash_received" name="cash_received" step="0.01" min="0" placeholder="0.00" value="<%= formData && formData.cash_received ? formData.cash_received : '' %>">
       </div>
