@@ -33,35 +33,44 @@
 </div>
 
 <div class="card">
-  <h3 class="mt-0">Top Performers — Sales &amp; Profit</h3>
-  <p class="muted" style="margin-top:-8px; font-size:0.8rem;">Gross sales and profit (revenue minus cost of goods, net of returns), ranked by this month's profit.</p>
+  <h3 class="mt-0">Top Performers — Sales</h3>
+  <p class="muted" style="margin-top:-8px; font-size:0.8rem;">Gross sales, ranked by this month's profit.</p>
   <% if (topPerformers.length === 0) { %>
     <p class="muted">No receipts captured yet.</p>
   <% } else { %>
     <div class="table-wrap">
     <table>
-      <thead>
-        <tr>
-          <th rowspan="2" style="vertical-align:bottom;">User</th>
-          <th class="num" colspan="2">Today</th>
-          <th class="num" colspan="2">This Week</th>
-          <th class="num" colspan="2">This Month</th>
-        </tr>
-        <tr>
-          <th class="num">Sales</th><th class="num">Profit</th>
-          <th class="num">Sales</th><th class="num">Profit</th>
-          <th class="num">Sales</th><th class="num">Profit</th>
-        </tr>
-      </thead>
+      <thead><tr><th>User</th><th class="num">Today</th><th class="num">This Week</th><th class="num">This Month</th></tr></thead>
       <tbody>
         <% topPerformers.forEach(u => { %>
           <tr>
             <td><%= u.name %></td>
             <td class="num">$<%= u.todaySales.toFixed(2) %></td>
-            <td class="num" style="color: <%= u.todayProfit >= 0 ? 'var(--success)' : 'var(--danger)' %>;">$<%= u.todayProfit.toFixed(2) %></td>
             <td class="num">$<%= u.weekSales.toFixed(2) %></td>
-            <td class="num" style="color: <%= u.weekProfit >= 0 ? 'var(--success)' : 'var(--danger)' %>;">$<%= u.weekProfit.toFixed(2) %></td>
             <td class="num">$<%= u.monthSales.toFixed(2) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    </div>
+  <% } %>
+</div>
+
+<div class="card">
+  <h3 class="mt-0">Top Performers — Profit</h3>
+  <p class="muted" style="margin-top:-8px; font-size:0.8rem;">Gross profit (revenue minus cost of goods, net of returns), ranked by this month.</p>
+  <% if (topPerformers.length === 0) { %>
+    <p class="muted">No receipts captured yet.</p>
+  <% } else { %>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>User</th><th class="num">Today</th><th class="num">This Week</th><th class="num">This Month</th></tr></thead>
+      <tbody>
+        <% topPerformers.forEach(u => { %>
+          <tr>
+            <td><%= u.name %></td>
+            <td class="num" style="color: <%= u.todayProfit >= 0 ? 'var(--success)' : 'var(--danger)' %>;">$<%= u.todayProfit.toFixed(2) %></td>
+            <td class="num" style="color: <%= u.weekProfit >= 0 ? 'var(--success)' : 'var(--danger)' %>;">$<%= u.weekProfit.toFixed(2) %></td>
             <td class="num" style="color: <%= u.monthProfit >= 0 ? 'var(--success)' : 'var(--danger)' %>;">$<%= u.monthProfit.toFixed(2) %></td>
           </tr>
         <% }) %>
