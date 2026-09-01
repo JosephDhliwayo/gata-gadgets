@@ -47,24 +47,27 @@
 
   <div class="card">
     <h3 class="mt-0">Items</h3>
-    <p class="muted" style="margin-top:-6px;">Search by product name or SKU. Unit price defaults to the catalog price but can be edited for a negotiated sale.</p>
+    <p class="muted" style="margin-top:-6px;">Search by product name or SKU. To give a negotiated price, enter a Discount amount — the catalog price itself is fixed.</p>
     <div class="line-item-row muted" style="font-size:0.78rem; text-transform:uppercase; font-weight:600;">
-      <div>Product</div><div>Qty</div><div>Unit Price</div><div>Line Total</div><div></div>
+      <div>Product</div><div>Qty</div><div>Catalog Price</div><div>Discount</div><div>Line Total</div><div></div>
     </div>
     <div id="line-items">
       <% const initialLines = (lines && lines.length > 0) ? lines : [{}]; %>
       <% initialLines.forEach(line => { %>
         <% const prod = line.product_id ? products.find(p => String(p.id) === String(line.product_id)) : null; %>
+        <% const discountValue = (prod && line.unit_price !== undefined && line.unit_price !== '') ? Math.max(0, Math.round((prod.selling_price - parseFloat(line.unit_price)) * 100) / 100) : ''; %>
         <div class="line-item-row">
           <div>
             <input type="text" class="product-search" list="products-datalist" placeholder="Search product..." autocomplete="off" required value="<%= prod ? `${prod.name} (${prod.sku})` : '' %>">
             <input type="hidden" name="product_id" class="product-id-input" value="<%= line.product_id || '' %>">
-            <div class="product-hint muted" style="font-size:0.75rem; margin-top:2px;"><%= prod ? `$${prod.selling_price.toFixed(2)} catalog price · ${prod.quantity} in stock` : '' %></div>
+            <div class="product-hint muted" style="font-size:0.75rem; margin-top:2px;"><%= prod ? `${prod.quantity} in stock` : '' %></div>
           </div>
           <div><input type="number" name="quantity" class="qty-input" min="1" value="<%= line.quantity || 1 %>" <%= prod ? `max="${prod.quantity}"` : '' %> required></div>
-          <div><input type="number" name="unit_price" class="price-input" step="0.01" min="0" value="<%= line.unit_price || '' %>" <%= prod ? '' : 'disabled' %>></div>
+          <div><input type="text" class="catalog-price-display" readonly value="<%= prod ? `$${prod.selling_price.toFixed(2)}` : '' %>" placeholder="-"></div>
+          <div><input type="number" class="discount-input" step="0.01" min="0" placeholder="0.00" value="<%= discountValue %>" <%= prod ? `max="${prod.selling_price}"` : 'disabled' %>></div>
           <div class="line-total">-</div>
           <div><button type="button" class="btn small outline remove-line-btn">&times;</button></div>
+          <input type="hidden" name="unit_price" class="price-input" value="<%= line.unit_price || '' %>">
         </div>
       <% }) %>
     </div>
@@ -78,9 +81,11 @@
           <div class="product-hint muted" style="font-size:0.75rem; margin-top:2px;"></div>
         </div>
         <div><input type="number" name="quantity" class="qty-input" min="1" value="1" required></div>
-        <div><input type="number" name="unit_price" class="price-input" step="0.01" min="0" disabled></div>
+        <div><input type="text" class="catalog-price-display" readonly placeholder="-"></div>
+        <div><input type="number" class="discount-input" step="0.01" min="0" placeholder="0.00" disabled></div>
         <div class="line-total">-</div>
         <div><button type="button" class="btn small outline remove-line-btn">&times;</button></div>
+        <input type="hidden" name="unit_price" class="price-input">
       </div>
     </template>
 

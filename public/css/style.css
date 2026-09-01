@@ -439,8 +439,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--purple); ou
 .receipt-print .totals td { border: none; padding: 3px 0; }
 .receipt-print .totals .grand { font-weight: 700; font-size: 1.05rem; border-top: 1px solid var(--border); }
 
-.line-item-row { display: grid; grid-template-columns: 2fr 90px 110px 110px 36px; gap: 8px; align-items: end; margin-bottom: 10px; }
-@media (max-width: 700px) { .line-item-row { grid-template-columns: 1fr; } }
+.line-item-row { display: grid; grid-template-columns: 2fr 80px 100px 100px 100px 36px; gap: 8px; align-items: end; margin-bottom: 10px; }
+@media (max-width: 900px) { .line-item-row { grid-template-columns: 1fr; } }
+.catalog-price-display { background: var(--bg); color: var(--text-muted); }
 .payment-row { display: grid; grid-template-columns: 2fr 140px 36px; gap: 8px; align-items: end; margin-bottom: 10px; }
 @media (max-width: 700px) { .payment-row { grid-template-columns: 1fr; } }
 .muted { color: var(--text-muted); }

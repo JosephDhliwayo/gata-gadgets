@@ -39,7 +39,7 @@
       const lineTotalEl = row.querySelector('.line-total');
       const price = parseFloat(priceInput.value);
       const qty = parseInt(qtyInput.value, 10) || 0;
-      if (priceInput.disabled || isNaN(price)) {
+      if (priceInput.value === '' || isNaN(price)) {
         lineTotalEl.textContent = '-';
         return;
       }
@@ -146,30 +146,47 @@
   function bindProductSearch(row) {
     const searchInput = row.querySelector('.product-search');
     const idInput = row.querySelector('.product-id-input');
+    const catalogPriceDisplay = row.querySelector('.catalog-price-display');
+    const discountInput = row.querySelector('.discount-input');
     const priceInput = row.querySelector('.price-input');
     const qtyInput = row.querySelector('.qty-input');
     const hintEl = row.querySelector('.product-hint');
-    let matchedKey = null;
+    // Seed from a server-rendered pre-filled row (e.g. after a validation error) so the
+    // discount field works immediately, without requiring the cashier to re-type the search.
+    let currentProduct = searchInput.value ? (productsByKey.get(searchInput.value) || null) : null;
+
+    // The actual sale price submitted to the server is always catalog price minus the
+    // discount entered here — the cashier never edits a price field directly.
+    function applyDiscount() {
+      if (!currentProduct) {
+        priceInput.value = '';
+        return;
+      }
+      const rawDiscount = parseFloat(discountInput.value) || 0;
+      const clampedDiscount = Math.max(0, Math.min(rawDiscount, currentProduct.price));
+      const effectivePrice = Math.round((currentProduct.price - clampedDiscount) * 100) / 100;
+      priceInput.value = effectivePrice.toFixed(2);
+    }
 
     function handleSearchInput() {
       const product = productsByKey.get(searchInput.value);
       if (product) {
-        if (matchedKey !== product.key) {
-          // Reset the price to the catalog price only when the selected product actually changes,
-          // so quantity-only edits don't clobber a manually negotiated price.
-          priceInput.value = product.price.toFixed(2);
-          matchedKey = product.key;
-        }
+        currentProduct = product;
         idInput.value = product.id;
-        priceInput.disabled = false;
+        catalogPriceDisplay.value = money(product.price);
+        discountInput.disabled = false;
+        discountInput.max = product.price;
         qtyInput.max = product.stock;
         if (parseInt(qtyInput.value, 10) > product.stock) qtyInput.value = product.stock;
-        hintEl.textContent = `${money(product.price)} catalog price · ${product.stock} in stock`;
+        hintEl.textContent = `${product.stock} in stock`;
+        applyDiscount();
       } else {
-        matchedKey = null;
+        currentProduct = null;
         idInput.value = '';
+        catalogPriceDisplay.value = '';
+        discountInput.value = '';
+        discountInput.disabled = true;
         priceInput.value = '';
-        priceInput.disabled = true;
         qtyInput.removeAttribute('max');
         hintEl.textContent = searchInput.value ? 'No matching product — pick one from the list.' : '';
       }
@@ -177,7 +194,7 @@
     }
 
     searchInput.addEventListener('input', handleSearchInput);
-    priceInput.addEventListener('input', recalc);
+    discountInput.addEventListener('input', () => { applyDiscount(); recalc(); });
     qtyInput.addEventListener('input', recalc);
   }
 
