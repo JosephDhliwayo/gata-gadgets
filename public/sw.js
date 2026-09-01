@@ -4,7 +4,9 @@
 // 2. Making the app installable as a PWA. Deliberately does NOT cache app pages
 //    (receipts, dashboard, reports are live business data and must always come
 //    from the network), only the small set of static assets that rarely change.
-const CACHE_NAME = 'gata-gadgets-static-v1';
+// Bump this whenever the cached asset list itself changes — it forces old cached
+// entries to be discarded on the next activate.
+const CACHE_NAME = 'gata-gadgets-static-v2';
 const STATIC_ASSETS = [
   '/css/style.css',
   '/img/logo.jpg',
@@ -33,8 +35,16 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET' || !STATIC_ASSETS.includes(url.pathname)) {
     return; // let the browser handle everything else normally (network)
   }
+  // Network-first: always serve the current file when online (so CSS/JS/image edits show up
+  // immediately on next load), and only fall back to the last cached copy when offline.
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
 
