@@ -69,15 +69,15 @@
   <h3 class="mt-0">Recent Ecocash Sales</h3>
   <div class="table-wrap">
   <table>
-    <thead><tr><th>Receipt #</th><th>Date</th><th>Customer</th><th>Cashier</th><th class="num">Amount</th></tr></thead>
+    <thead><tr><th>Receipt #</th><th>Date</th><th>Customer</th><th>Cashier</th><th class="num">Ecocash Amount</th></tr></thead>
     <tbody>
       <% receipts.forEach(r => { %>
         <tr>
-          <td><a href="/receipts/<%= r.id %>"><%= r.receipt_number %></a></td>
+          <td><a href="/receipts/<%= r.id %>"><%= r.receipt_number %></a><% if (r.payment_method === 'split') { %> <span class="pill pill-warning">Split</span><% } %></td>
           <td><%= formatDateTime(r.created_at) %></td>
           <td><%= r.customer_name || 'Walk-in' %></td>
           <td><%= r.cashier_name %></td>
-          <td class="num">$<%= r.total.toFixed(2) %></td>
+          <td class="num">$<%= r.ecocash_amount.toFixed(2) %></td>
         </tr>
       <% }) %>
       <% if (receipts.length === 0) { %>

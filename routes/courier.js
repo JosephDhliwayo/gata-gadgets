@@ -16,9 +16,11 @@ router.get('/', (req, res) => {
   `).all();
 
   const receipts = db.prepare(`
-    SELECT r.*, u.name AS cashier_name FROM receipts r
+    SELECT r.*, u.name AS cashier_name, rp.amount AS courier_amount
+    FROM receipt_payments rp
+    JOIN receipts r ON r.id = rp.receipt_id
     JOIN users u ON u.id = r.user_id
-    WHERE r.payment_method = 'courier' AND r.status = 'completed'
+    WHERE rp.payment_method = 'courier' AND r.status = 'completed'
     ORDER BY r.created_at DESC
     LIMIT 100
   `).all();

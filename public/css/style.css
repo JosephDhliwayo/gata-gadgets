@@ -441,6 +441,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--purple); ou
 
 .line-item-row { display: grid; grid-template-columns: 2fr 90px 110px 110px 36px; gap: 8px; align-items: end; margin-bottom: 10px; }
 @media (max-width: 700px) { .line-item-row { grid-template-columns: 1fr; } }
+.payment-row { display: grid; grid-template-columns: 2fr 140px 36px; gap: 8px; align-items: end; margin-bottom: 10px; }
+@media (max-width: 700px) { .payment-row { grid-template-columns: 1fr; } }
 .muted { color: var(--text-muted); }
 .text-right { text-align: right; }
 .mt-0 { margin-top: 0; }

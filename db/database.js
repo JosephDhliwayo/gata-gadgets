@@ -66,6 +66,14 @@ CREATE TABLE IF NOT EXISTS receipt_items (
   line_total REAL NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS receipt_payments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  receipt_id INTEGER NOT NULL REFERENCES receipts(id),
+  payment_method TEXT NOT NULL CHECK(payment_method IN ('cash','bank_transfer','ecocash_usd','courier')),
+  amount REAL NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now', '+2 hours'))
+);
+
 CREATE TABLE IF NOT EXISTS stock_adjustments (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   product_id INTEGER NOT NULL REFERENCES products(id),
@@ -260,6 +268,16 @@ if (chatColumns.includes('conversation_user_id')) {
     );
   `);
 }
+
+// Backfill receipt_payments for any receipt that predates split-payment support (or was
+// otherwise created without one), using its single payment_method/total. Safe to run on every
+// startup — only touches receipts that don't already have a payment line recorded.
+db.exec(`
+  INSERT INTO receipt_payments (receipt_id, payment_method, amount, created_at)
+  SELECT id, payment_method, total, created_at FROM receipts
+  WHERE payment_method IN ('cash','bank_transfer','ecocash_usd','courier')
+    AND id NOT IN (SELECT DISTINCT receipt_id FROM receipt_payments)
+`);
 
 // Seed default admin user on first run
 const userCount = db.prepare('SELECT COUNT(*) AS c FROM users').get().c;

@@ -29,7 +29,9 @@
           <% if (isAdmin) { %><td><%= r.cashier_name %></td><% } %>
           <td><%= r.customer_name || '-' %></td>
           <td>
-            <% if (r.payment_method === 'courier') { %>
+            <% if (r.payment_method === 'split') { %>
+              <span class="pill pill-warning">Split</span>
+            <% } else if (r.payment_method === 'courier') { %>
               <span class="pill pill-warning">Courier</span>
             <% } else { %>
               <%= r.payment_method %>

@@ -11,7 +11,7 @@
         <button class="btn danger" type="submit">Void Receipt</button>
       </form>
     <% } %>
-    <% if (currentUser.role === 'admin' && receipt.payment_method === 'courier') { %>
+    <% if (currentUser.role === 'admin' && payments.some(p => p.payment_method === 'courier')) { %>
       <a class="btn secondary" href="/courier">Courier Balance</a>
     <% } %>
     <% if (currentUser.role === 'admin' && discountRequest && discountRequest.status === 'pending') { %>
@@ -36,8 +36,11 @@
 <% if (currentUser.id !== receipt.user_id && receipt.status === 'completed') { %>
   <div class="alert alert-warning no-print">Only <%= receipt.cashier_name %>, the cashier who captured this sale, can request a return for it.</div>
 <% } %>
-<% if (receipt.payment_method === 'courier') { %>
-  <div class="alert alert-warning no-print">This is a credit sale via courier — <strong>$<%= receipt.total.toFixed(2) %></strong> was added to the courier balance to be collected.</div>
+<%
+  const courierPayment = payments.find(p => p.payment_method === 'courier');
+%>
+<% if (courierPayment) { %>
+  <div class="alert alert-warning no-print">This sale includes a credit portion via courier — <strong>$<%= courierPayment.amount.toFixed(2) %></strong> was added to the courier balance to be collected.</div>
 <% } %>
 
 <div class="receipt-print">
@@ -51,8 +54,13 @@
   <p>
     Cashier: <%= receipt.cashier_name %><br>
     Customer: <%= receipt.customer_name || 'Walk-in' %><br>
-    Payment: <%= paymentLabels[receipt.payment_method] || receipt.payment_method %>
-    <% if (receipt.payment_method === 'courier' && receipt.courier_destination) { %><br>Destination: <%= receipt.courier_destination %><% } %>
+    Payment:
+    <% if (payments.length === 1) { %>
+      <%= paymentLabels[payments[0].payment_method] || payments[0].payment_method %>
+    <% } else { %>
+      <% payments.forEach((p, i) => { %><%= i > 0 ? ', ' : '' %><%= paymentLabels[p.payment_method] || p.payment_method %> ($<%= p.amount.toFixed(2) %>)<% }) %>
+    <% } %>
+    <% if (courierPayment && receipt.courier_destination) { %><br>Destination: <%= receipt.courier_destination %><% } %>
   </p>
   <table>
     <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Total</th></tr></thead>
@@ -73,7 +81,7 @@
       <tr><td>Tax (<%= receipt.tax_rate %>%)</td><td class="text-right">$<%= receipt.tax_amount.toFixed(2) %></td></tr>
     <% } %>
     <tr><td class="grand">Total</td><td class="text-right grand">$<%= receipt.total.toFixed(2) %></td></tr>
-    <% if (receipt.payment_method === 'cash' && receipt.cash_received !== null) { %>
+    <% if (receipt.cash_received !== null) { %>
       <tr><td>Cash Received</td><td class="text-right">$<%= receipt.cash_received.toFixed(2) %></td></tr>
       <tr><td class="grand">Change Due</td><td class="text-right grand">$<%= receipt.change_due.toFixed(2) %></td></tr>
     <% } %>

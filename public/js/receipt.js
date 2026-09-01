@@ -4,7 +4,11 @@
   const addBtn = document.getElementById('add-line-btn');
   const subtotalEl = document.getElementById('subtotal-display');
   const totalEl = document.getElementById('total-display');
-  const paymentMethodSelect = document.getElementById('payment_method');
+
+  const paymentRowsContainer = document.getElementById('payment-rows');
+  const paymentRowTemplate = document.getElementById('payment-row-template');
+  const addPaymentBtn = document.getElementById('add-payment-btn');
+  const paymentSummaryEl = document.getElementById('payment-summary');
   const courierHint = document.getElementById('courier-hint');
   const courierDestinationField = document.getElementById('courier-destination-field');
   const courierDestinationInput = document.getElementById('courier_destination');
@@ -21,6 +25,10 @@
 
   function money(n) {
     return '$' + (Math.round(n * 100) / 100).toFixed(2);
+  }
+
+  function paymentRows() {
+    return Array.from(paymentRowsContainer.querySelectorAll('.payment-row'));
   }
 
   function recalc() {
@@ -42,24 +50,66 @@
     subtotalEl.textContent = money(subtotal);
     totalEl.textContent = money(subtotal);
     currentTotal = subtotal;
-    updateChange();
+    refreshPayments();
   }
 
-  function updateChange() {
-    const isCourier = paymentMethodSelect.value === 'courier';
-    courierHint.style.display = isCourier ? 'block' : 'none';
-    courierDestinationField.style.display = isCourier ? '' : 'none';
-    courierDestinationInput.required = isCourier;
-    if (!isCourier) courierDestinationInput.value = '';
-    const isCash = paymentMethodSelect.value === 'cash';
-    cashFields.style.display = isCash ? '' : 'none';
-    if (!isCash || cashReceivedInput.value === '') {
+  // With exactly one payment row, its amount always equals the total automatically (and can't
+  // be hand-edited) — same zero-extra-input experience as before split payments existed. Adding
+  // a second row hands full manual control to the cashier, since the split must be typed in.
+  function refreshPayments() {
+    const rows = paymentRows();
+    const single = rows.length === 1;
+    rows.forEach((row) => {
+      const amountInput = row.querySelector('.payment-amount-input');
+      amountInput.readOnly = single;
+      if (single) amountInput.value = currentTotal > 0 ? currentTotal.toFixed(2) : '';
+      row.querySelector('.remove-payment-btn').style.display = rows.length > 1 ? '' : 'none';
+    });
+    updatePaymentState();
+  }
+
+  function updatePaymentState() {
+    const rows = paymentRows();
+    let allocated = 0;
+    let hasCash = false;
+    let hasCourier = false;
+    let cashAmount = 0;
+
+    rows.forEach((row) => {
+      const method = row.querySelector('.payment-method-select').value;
+      const amount = parseFloat(row.querySelector('.payment-amount-input').value) || 0;
+      allocated += amount;
+      if (method === 'cash') { hasCash = true; cashAmount += amount; }
+      if (method === 'courier') hasCourier = true;
+    });
+    allocated = Math.round(allocated * 100) / 100;
+
+    courierHint.style.display = hasCourier ? 'block' : 'none';
+    courierDestinationField.style.display = hasCourier ? '' : 'none';
+    courierDestinationInput.required = hasCourier;
+    if (!hasCourier) courierDestinationInput.value = '';
+
+    cashFields.style.display = hasCash ? '' : 'none';
+
+    const diff = Math.round((currentTotal - allocated) * 100) / 100;
+    if (Math.abs(diff) < 0.005) {
+      paymentSummaryEl.textContent = `Allocated ${money(allocated)} of ${money(currentTotal)} — balanced.`;
+      paymentSummaryEl.style.color = 'var(--success)';
+    } else if (diff > 0) {
+      paymentSummaryEl.textContent = `Allocated ${money(allocated)} of ${money(currentTotal)} — ${money(diff)} remaining.`;
+      paymentSummaryEl.style.color = 'var(--warning)';
+    } else {
+      paymentSummaryEl.textContent = `Allocated ${money(allocated)} of ${money(currentTotal)} — ${money(-diff)} over.`;
+      paymentSummaryEl.style.color = 'var(--danger)';
+    }
+
+    if (!hasCash || cashReceivedInput.value === '') {
       changeRow.style.display = 'none';
       shortfallEl.style.display = 'none';
       return;
     }
     const cashReceived = parseFloat(cashReceivedInput.value) || 0;
-    const change = cashReceived - currentTotal;
+    const change = cashReceived - cashAmount;
     if (change < 0) {
       changeRow.style.display = 'none';
       shortfallEl.style.display = 'block';
@@ -69,6 +119,29 @@
       changeEl.textContent = money(change);
     }
   }
+
+  function bindPaymentRow(row) {
+    row.querySelector('.payment-method-select').addEventListener('change', updatePaymentState);
+    row.querySelector('.payment-amount-input').addEventListener('input', updatePaymentState);
+    row.querySelector('.remove-payment-btn').addEventListener('click', () => {
+      if (paymentRows().length > 1) {
+        row.remove();
+        refreshPayments();
+      }
+    });
+  }
+
+  function addPaymentRow() {
+    const clone = paymentRowTemplate.content.cloneNode(true);
+    paymentRowsContainer.appendChild(clone);
+    const row = paymentRowsContainer.lastElementChild;
+    bindPaymentRow(row);
+    refreshPayments();
+  }
+
+  paymentRows().forEach(bindPaymentRow);
+  addPaymentBtn.addEventListener('click', addPaymentRow);
+  cashReceivedInput.addEventListener('input', updatePaymentState);
 
   function bindProductSearch(row) {
     const searchInput = row.querySelector('.product-search');
@@ -133,7 +206,5 @@
   });
 
   addBtn.addEventListener('click', addRow);
-  paymentMethodSelect.addEventListener('change', updateChange);
-  cashReceivedInput.addEventListener('input', updateChange);
   recalc();
 })();

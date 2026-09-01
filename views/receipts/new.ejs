@@ -42,23 +42,61 @@
         <input type="tel" id="customer_phone" name="customer_phone" list="customer-phones-datalist" placeholder="Search or type a phone number" required value="<%= formData ? (formData.customer_phone || '') : '' %>">
         <div id="loyalty-hint" class="muted" style="font-size:0.8rem; margin-top:4px; display:none;"></div>
       </div>
-      <div class="field">
-        <label for="payment_method">Payment Method</label>
-        <select id="payment_method" name="payment_method">
-          <option value="cash" <%= (!formData || formData.payment_method === 'cash') ? 'selected' : '' %>>Cash</option>
-          <option value="bank_transfer" <%= (formData && formData.payment_method === 'bank_transfer') ? 'selected' : '' %>>Bank Transfer</option>
-          <option value="ecocash_usd" <%= (formData && formData.payment_method === 'ecocash_usd') ? 'selected' : '' %>>Ecocash USD</option>
-          <option value="courier" <%= (formData && formData.payment_method === 'courier') ? 'selected' : '' %>>Courier</option>
-        </select>
-        <div id="courier-hint" class="muted" style="font-size:0.8rem; margin-top:4px; display:none; color:var(--warning);">
-          Courier is a credit sale — goods go out now, and this will show as an outstanding trade receivable until an admin marks it cleared.
-        </div>
+    </div>
+
+    <div class="field" style="margin-top:16px;">
+      <label>Payment Method(s)</label>
+      <p class="muted" style="margin:2px 0 8px; font-size:0.8rem;">A customer can split one sale across two or more payment methods — just add another row and enter each portion.</p>
+      <div id="payment-rows">
+        <% const paymentMethodOptions = [
+          ['cash', 'Cash'], ['bank_transfer', 'Bank Transfer'], ['ecocash_usd', 'Ecocash USD'], ['courier', 'Courier']
+        ]; %>
+        <% const initialPayments = (payments && payments.length > 0) ? payments : [{ payment_method: 'cash', amount: '' }]; %>
+        <% initialPayments.forEach((p, i) => { %>
+          <div class="payment-row">
+            <div>
+              <% if (i === 0) { %><label style="font-size:0.75rem;">Method</label><% } %>
+              <select name="payment_method" class="payment-method-select">
+                <% paymentMethodOptions.forEach(([val, label]) => { %>
+                  <option value="<%= val %>" <%= p.payment_method === val ? 'selected' : '' %>><%= label %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div>
+              <% if (i === 0) { %><label style="font-size:0.75rem;">Amount</label><% } %>
+              <input type="number" name="payment_amount" class="payment-amount-input" step="0.01" min="0" placeholder="0.00" value="<%= p.amount || '' %>">
+            </div>
+            <div><button type="button" class="btn small outline remove-payment-btn">&times;</button></div>
+          </div>
+        <% }) %>
       </div>
-      <div class="field" id="courier-destination-field" style="display:none;">
-        <label for="courier_destination">Courier Destination</label>
-        <input type="text" id="courier_destination" name="courier_destination" list="courier-destinations-datalist" placeholder="Search or type a destination" value="<%= formData ? (formData.courier_destination || '') : '' %>">
+      <button type="button" class="btn small secondary" id="add-payment-btn">+ Add Payment Method</button>
+      <div id="payment-summary" class="muted" style="font-size:0.85rem; margin-top:8px;"></div>
+      <div id="courier-hint" class="muted" style="font-size:0.8rem; margin-top:4px; display:none; color:var(--warning);">
+        Courier is a credit sale — the courier portion goes out now, and shows as an outstanding trade receivable until an admin marks it collected.
       </div>
     </div>
+    <div class="field" id="courier-destination-field" style="display:none;">
+      <label for="courier_destination">Courier Destination</label>
+      <input type="text" id="courier_destination" name="courier_destination" list="courier-destinations-datalist" placeholder="Search or type a destination" value="<%= formData ? (formData.courier_destination || '') : '' %>">
+    </div>
+
+    <template id="payment-row-template">
+      <div class="payment-row">
+        <div>
+          <select name="payment_method" class="payment-method-select">
+            <option value="cash">Cash</option>
+            <option value="bank_transfer">Bank Transfer</option>
+            <option value="ecocash_usd">Ecocash USD</option>
+            <option value="courier">Courier</option>
+          </select>
+        </div>
+        <div>
+          <input type="number" name="payment_amount" class="payment-amount-input" step="0.01" min="0" placeholder="0.00">
+        </div>
+        <div><button type="button" class="btn small outline remove-payment-btn">&times;</button></div>
+      </div>
+    </template>
   </div>
 
   <div class="card">
